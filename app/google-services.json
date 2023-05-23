@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1094343174908",
+    "project_id": "go4lunch-31608",
+    "storage_bucket": "go4lunch-31608.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1094343174908:android:c76b8ab8c0a7fe6784c579",
+        "android_client_info": {
+          "package_name": "com.openclassroom.go4lunch"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1094343174908-v80mesffogsi6eddilepa8u4o9qplv4l.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.openclassroom.go4lunch",
+            "certificate_hash": "0787244f817847a94eee6a1e157a04f452b439b2"
+          }
+        },
+        {
+          "client_id": "1094343174908-mi7bl74g2md2gsiscuhshdtfm5791ovm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBxlB5wx-5S1IZdjmELTO2gxyT7-musaN0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1094343174908-mi7bl74g2md2gsiscuhshdtfm5791ovm.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
