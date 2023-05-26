@@ -13,7 +13,7 @@
 
     <fragment
         android:id="@+id/navigation_list"
-        android:name="com.openclassroom.go4lunch.ui.list.ListFragment"
+        android:name="com.openclassroom.go4lunch.ui.restaurant.RestaurantFragment"
         android:label="@string/title_list"
         tools:layout="@layout/fragment_list" />
 

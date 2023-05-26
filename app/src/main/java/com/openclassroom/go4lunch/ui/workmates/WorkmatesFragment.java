@@ -4,34 +4,40 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-import com.openclassroom.go4lunch.databinding.FragmentWorkmatesBinding;
+import com.openclassroom.go4lunch.R;
+import com.openclassroom.go4lunch.injection.DI;
+import com.openclassroom.go4lunch.models.Workmates;
+import com.openclassroom.go4lunch.services.ApiService;
+
+import java.util.List;
 
 public class WorkmatesFragment extends Fragment {
 
-    private FragmentWorkmatesBinding binding;
+    RecyclerView mWorkmatesRecyclerView;
+    WorkmatesAdapter mWorkmatesAdapter;
+    List<Workmates> mWorkmatesList;
+    ApiService mApiService;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        WorkmatesViewModel workmatesViewModel =
-                new ViewModelProvider(this).get(WorkmatesViewModel.class);
+        View root = inflater.inflate(R.layout.fragment_workmates, container, false);
 
-        binding = FragmentWorkmatesBinding.inflate(inflater, container, false);
-        View root = binding.getRoot();
+        mApiService = DI.getApiService();
 
-        final TextView textView = binding.textWorkmates;
-        workmatesViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
+        mWorkmatesRecyclerView = root.findViewById(R.id.workmates_recycler_view);
+        mWorkmatesList = mApiService.getAllWorkmates();
+        mWorkmatesAdapter = new WorkmatesAdapter(getActivity(), mWorkmatesList);
+        mWorkmatesRecyclerView.setAdapter(mWorkmatesAdapter);
+        mWorkmatesRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), RecyclerView.VERTICAL, false));
+        mWorkmatesRecyclerView.setHasFixedSize(true);
+        mWorkmatesRecyclerView.setNestedScrollingEnabled(false);
+
         return root;
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        binding = null;
     }
 }
