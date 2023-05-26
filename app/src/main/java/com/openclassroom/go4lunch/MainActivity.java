@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
                         .setTheme(R.style.LoginTheme)
                         .setAvailableProviders(providers)
                         .setIsSmartLockEnabled(false, true)
-                        .setLogo(R.mipmap.app_logo)
+                        .setLogo(R.drawable.app_logo)
                         .build(),
                 RC_SIGN_IN);
     }
@@ -56,7 +56,6 @@ public class MainActivity extends AppCompatActivity {
         IdpResponse response = IdpResponse.fromResultIntent(data);
         if (requestCode == RC_SIGN_IN) {
             if (resultCode == RESULT_OK) {
-                //userManager.createUser();
                 showSnackBar("connection_succeed");
                 Toast.makeText( this, "connection_succeed", Toast.LENGTH_SHORT).show();
                 Intent intent=new Intent(getApplicationContext(), HomeActivity.class);
