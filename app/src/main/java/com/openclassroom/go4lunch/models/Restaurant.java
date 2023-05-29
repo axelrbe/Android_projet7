@@ -6,17 +6,13 @@ import android.os.Parcelable;
 import androidx.annotation.NonNull;
 
 public class Restaurant implements Parcelable {
-    private String name;
-    private String distance;
+    private String name, distance, type, address, interestedColleagues, openingHours;
 
     //private int image; if there's one
-    private String type;
-    private String address;
-    private String interestedColleagues;
-    private String openingHours;
     private int rating; // Between 0 and 3 stars
+    private boolean isSelected;
 
-    public Restaurant(String name, String distance, String type, String address, String interestedColleagues, String openingHours, int rating) {
+    public Restaurant(String name, String distance, String type, String address, String interestedColleagues, String openingHours, int rating, boolean isSelected) {
         this.name = name;
         this.distance = distance;
         this.type = type;
@@ -24,6 +20,7 @@ public class Restaurant implements Parcelable {
         this.interestedColleagues = interestedColleagues;
         this.openingHours = openingHours;
         this.rating = rating;
+        this.isSelected = isSelected;
     }
 
     public String getName() {
@@ -90,7 +87,15 @@ public class Restaurant implements Parcelable {
         this.rating = numberOfPositiveReview;
     }
 
-    // Implementation of Parcelable
+    public boolean isSelected() {
+        return isSelected;
+    }
+
+    public void setSelected(boolean selected) {
+        isSelected = selected;
+    }
+
+    // ***************** Implementation of Parcelable ****************
 
     public static final Parcelable.Creator<Restaurant> CREATOR = new Parcelable.Creator<Restaurant>() {
         public Restaurant createFromParcel(Parcel in) {

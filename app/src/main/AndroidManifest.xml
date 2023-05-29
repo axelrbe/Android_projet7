@@ -18,13 +18,13 @@
             android:name=".ui.restaurant.DetailedRestaurantActivity"
             android:exported="false" />
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.MainActivity"
             android:exported="false" />
         <activity
             android:name=".ui.HomeActivity"
             android:exported="false" />
         <activity
-            android:name=".SplashScreen"
+            android:name=".ui.SplashScreen"
             android:exported="true"
             android:theme="@style/splashScreen">
             <intent-filter>

@@ -1,4 +1,4 @@
-package com.openclassroom.go4lunch;
+package com.openclassroom.go4lunch.ui;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
