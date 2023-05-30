@@ -28,8 +28,7 @@
                     android:layout_width="80dp"
                     android:layout_height="match_parent"
                     android:contentDescription="@string/workmates_image"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/background_login_img" />
+                    android:scaleType="centerCrop"/>
 
             </androidx.cardview.widget.CardView>
 

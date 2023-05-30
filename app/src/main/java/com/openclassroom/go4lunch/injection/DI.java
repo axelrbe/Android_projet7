@@ -1,6 +1,7 @@
 package com.openclassroom.go4lunch.injection;
 
 import com.openclassroom.go4lunch.repositories.RestaurantRepository;
+import com.openclassroom.go4lunch.repositories.WorkmatesRepository;
 import com.openclassroom.go4lunch.services.DummyApiService;
 import com.openclassroom.go4lunch.services.ApiService;
 
@@ -11,5 +12,9 @@ public class DI {
 
     public static RestaurantRepository createRestaurantRepository() {
         return new RestaurantRepository(new DummyApiService());
+    }
+
+    public static WorkmatesRepository createWorkmateRepository() {
+        return new WorkmatesRepository(new DummyApiService());
     }
 }

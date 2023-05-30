@@ -16,10 +16,10 @@ public class Generator {
     );
 
     public static List<Workmates> DUMMY_WORKMATES = Arrays.asList(
-            new Workmates("Scarlett", DUMMY_RESTAURANTS.get(0)),
-            new Workmates("Hugh", DUMMY_RESTAURANTS.get(1)),
-            new Workmates("Nana", DUMMY_RESTAURANTS.get(2)),
-            new Workmates("Godfrey", DUMMY_RESTAURANTS.get(3))
+            new Workmates("1", "Scarlett", "https://www.kasandbox.org/programming-images/avatars/leaf-blue.png", "Scarlett@go4lunch.fr",  DUMMY_RESTAURANTS.get(0), false),
+            new Workmates("2", "Hugh", "https://www.kasandbox.org/programming-images/avatars/leaf-green.png", "Hugh@go4lunch.fr", DUMMY_RESTAURANTS.get(1), false),
+            new Workmates("3,", "Nana", "https://www.kasandbox.org/programming-images/avatars/leaf-grey.png", "Nana@go4lunch.fr", DUMMY_RESTAURANTS.get(2), false),
+            new Workmates("4", "Godfrey", "https://www.kasandbox.org/programming-images/avatars/leaf-orange.png", "Godfrey@go4lunch.fr", DUMMY_RESTAURANTS.get(3), false)
     );
 
     static List<Restaurant> generateRestaurants() { return new ArrayList<>(DUMMY_RESTAURANTS); }

@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -18,6 +19,8 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.NavigationUI;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseUser;
 import com.openclassroom.go4lunch.R;
@@ -38,6 +41,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     private View headerLayout;
 
     TextView userName, userEmail;
+    ImageView userImage;
 
     private List<Restaurant> mRestaurantList;
 
@@ -83,7 +87,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 }
             }
         } else if (item.getItemId() == R.id.left_nav_settings) {
-            // TODO Redirect to a settings page (change user info, notification...)
+            startActivity(new Intent(HomeActivity.this, SettingsActivity.class));
         } else if (item.getItemId() == R.id.left_nav_logout) {
             userManager.signOut(this).addOnSuccessListener(aVoid -> {
                 startActivity(new Intent(HomeActivity.this, MainActivity.class));
@@ -117,11 +121,11 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void setProfilePicture(Uri profilePictureUrl){
-        /*
+        userImage = headerLayout.findViewById(R.id.user_profile_picture);
         Glide.with(this)
                 .load(profilePictureUrl)
                 .apply(RequestOptions.circleCropTransform())
-                .into(binding.userProfilePicture);*/
+                .into(userImage);
     }
 
     private void setTextUserData(FirebaseUser user){
