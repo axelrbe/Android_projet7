@@ -18,7 +18,18 @@
             android:elevation="4dp"
             android:background="@color/orange"
             android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
+
+            <ImageButton
+                android:id="@+id/search_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/baseline_search_24"
+                android:backgroundTint="@color/fui_transparent"
+                android:contentDescription="@string/search_button"
+                android:layout_gravity="end"/>
+
+        </androidx.appcompat.widget.Toolbar>
 
     </LinearLayout>
 

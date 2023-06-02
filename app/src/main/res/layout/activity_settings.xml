@@ -6,6 +6,16 @@
     android:layout_height="match_parent"
     android:background="@color/white">
 
+    <ImageButton
+        android:id="@+id/settings_arrow_back"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/orange"
+        android:src="@drawable/baseline_arrow_back_24"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:contentDescription="@string/settings_arrow_back" />
+
     <com.google.android.material.switchmaterial.SwitchMaterial
         android:id="@+id/settingSwitch"
         android:layout_width="match_parent"

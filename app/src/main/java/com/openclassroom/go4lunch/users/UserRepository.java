@@ -10,6 +10,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 public final class UserRepository {
+    private String idSelectedRestaurant;
 
     private static volatile UserRepository instance;
 

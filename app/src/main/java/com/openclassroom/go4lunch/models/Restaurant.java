@@ -5,14 +5,18 @@ import android.os.Parcelable;
 
 import androidx.annotation.NonNull;
 
+import java.util.Objects;
+
 public class Restaurant implements Parcelable {
+    private long id;
     private String name, distance, type, address, interestedColleagues, openingHours;
 
     //private int image; if there's one
     private int rating; // Between 0 and 3 stars
-    private boolean isSelected;
 
-    public Restaurant(String name, String distance, String type, String address, String interestedColleagues, String openingHours, int rating, boolean isSelected) {
+    public Restaurant(long id, String name, String distance, String type, String address, String interestedColleagues,
+                      String openingHours, int rating) {
+        this.id = id;
         this.name = name;
         this.distance = distance;
         this.type = type;
@@ -20,7 +24,14 @@ public class Restaurant implements Parcelable {
         this.interestedColleagues = interestedColleagues;
         this.openingHours = openingHours;
         this.rating = rating;
-        this.isSelected = isSelected;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -87,16 +98,20 @@ public class Restaurant implements Parcelable {
         this.rating = numberOfPositiveReview;
     }
 
-    public boolean isSelected() {
-        return isSelected;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Restaurant restaurant = (Restaurant) o;
+        return Objects.equals(id, restaurant.id);
     }
 
-    public void setSelected(boolean selected) {
-        isSelected = selected;
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 
     // ***************** Implementation of Parcelable ****************
-
     public static final Parcelable.Creator<Restaurant> CREATOR = new Parcelable.Creator<Restaurant>() {
         public Restaurant createFromParcel(Parcel in) {
             return new Restaurant(in);
@@ -108,6 +123,7 @@ public class Restaurant implements Parcelable {
     };
 
     public Restaurant(Parcel in) {
+        id = in.readInt();
         name = in.readString();
         distance = in.readString();
         type = in.readString();
@@ -123,7 +139,8 @@ public class Restaurant implements Parcelable {
     }
 
     @Override
-    public void writeToParcel(@NonNull Parcel dest, int flags) {
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt((int) id);
         dest.writeString(name);
         dest.writeString(distance);
         dest.writeString(type);

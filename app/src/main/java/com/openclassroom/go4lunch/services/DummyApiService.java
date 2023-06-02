@@ -12,8 +12,6 @@ public class DummyApiService implements ApiService {
 
     @Override
     public List<Restaurant> getAllRestaurants() { return allRestaurants; }
-
     @Override
     public List<Workmates> getAllWorkmates() { return allWorkmates; }
-
 }

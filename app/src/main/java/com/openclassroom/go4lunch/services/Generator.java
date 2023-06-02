@@ -9,10 +9,10 @@ import java.util.List;
 
 public class Generator {
     public static List<Restaurant> DUMMY_RESTAURANTS = Arrays.asList(
-            new Restaurant("first", "23m", "Korean", "1 rue quelque chose", "3", "19h", 1, false),
-            new Restaurant("second", "120m", "Chinese", "2 rue quelque chose", "0", "18h", 1, true),
-            new Restaurant("third", "3km", "Portuguese", "3 rue quelque chose", "1", "17h30", 3, false),
-            new Restaurant("fourth", "10km", "Italian", "4 rue quelque chose", "7", "20h", 2, false)
+            new Restaurant(1, "first", "23m", "Korean", "1 rue quelque chose", "3", "19h", 1),
+            new Restaurant(2, "second", "120m", "Chinese", "2 rue quelque chose", "0", "18h", 1),
+            new Restaurant(3, "third", "3km", "Portuguese", "3 rue quelque chose", "1", "17h30", 3),
+            new Restaurant(4, "fourth", "10km", "Italian", "4 rue quelque chose", "7", "20h", 2)
     );
 
     public static List<Workmates> DUMMY_WORKMATES = Arrays.asList(
