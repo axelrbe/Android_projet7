@@ -86,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
                 user.put("email", response.getUser().getEmail());
                 user.put("profilePicture", response.getUser().getPhotoUri());
                 user.put("providerId", response.getUser().getProviderId());
+                user.put("idSelectedRestaurant", 0);
 
                 boolean isNew = response.isNewUser();
                 if (isNew) {

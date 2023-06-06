@@ -8,6 +8,8 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
@@ -16,11 +18,18 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.Source;
 import com.openclassroom.go4lunch.R;
 import com.openclassroom.go4lunch.injection.DI;
 import com.openclassroom.go4lunch.models.Restaurant;
+import com.openclassroom.go4lunch.models.Workmates;
 import com.openclassroom.go4lunch.services.ApiService;
+import com.openclassroom.go4lunch.ui.workmates.WorkmatesAdapter;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 public class DetailedRestaurantActivity extends AppCompatActivity {
 
@@ -30,6 +39,12 @@ public class DetailedRestaurantActivity extends AppCompatActivity {
     Restaurant mRestaurant;
     FloatingActionButton selectRestaurantBtn;
     ApiService mApiService;
+    List<Restaurant> allRestaurants;
+    FirebaseUser currentUser;
+    String userId;
+    List<Workmates> mDetailedWorkmatesList;
+    RecyclerView mDetailedWorkmatesRecyclerView;
+    DetailedWorkmatesAdapter mDetailedWorkmatesAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +66,46 @@ public class DetailedRestaurantActivity extends AppCompatActivity {
 
         setAllRestaurantInfo();
         changeSelectedStatus();
+        putWorkmatesInRecyclerView();
+    }
+
+    private void putWorkmatesInRecyclerView() {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("workmates")
+                .get()
+                .addOnCompleteListener(task -> {
+                    currentUser = FirebaseAuth.getInstance().getCurrentUser();
+                    userId = currentUser.getUid();
+                    allRestaurants = mApiService.getAllRestaurants();
+                    if (task.isSuccessful()) {
+                        mDetailedWorkmatesList = new ArrayList<>();
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            if (!userId.equals(document.getId())) {
+                                Log.d("usersInfos", "Are they equals ? " + Objects.equals(document.getLong("idSelectedRestaurant"), mRestaurant.getId()));
+                                Log.d("usersInfos", "Detailed restaurant id = " +  mRestaurant.getId());
+                                Log.d("usersInfos", "documents restaurant ids = " + document.getLong("idSelectedRestaurant"));
+                                if (Objects.equals(document.getLong("idSelectedRestaurant"), mRestaurant.getId())) {
+                                    Workmates workmate = new Workmates(document.getId(),
+                                            document.getString("name"),
+                                            document.getString("profilePicture"),
+                                            document.getString("email"),
+                                            mRestaurant,
+                                            false);
+                                    mDetailedWorkmatesList.add(workmate);
+                                }
+
+                                mDetailedWorkmatesRecyclerView = findViewById(R.id.interested_colleagues_recycler_view);
+                                mDetailedWorkmatesAdapter = new DetailedWorkmatesAdapter(this, mDetailedWorkmatesList);
+                                mDetailedWorkmatesRecyclerView.setAdapter(mDetailedWorkmatesAdapter);
+                                mDetailedWorkmatesRecyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false));
+                                mDetailedWorkmatesRecyclerView.setHasFixedSize(true);
+                                mDetailedWorkmatesRecyclerView.setNestedScrollingEnabled(false);
+                            }
+                        }
+                    } else {
+                        Log.d("usersInfos", "Error getting documents: ", task.getException());
+                    }
+                });
     }
 
     private void setAllRestaurantInfo() {

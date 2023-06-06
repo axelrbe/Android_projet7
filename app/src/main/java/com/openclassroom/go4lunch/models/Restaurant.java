@@ -13,6 +13,7 @@ public class Restaurant implements Parcelable {
 
     //private int image; if there's one
     private int rating; // Between 0 and 3 stars
+    private boolean notDecided;
 
     public Restaurant(long id, String name, String distance, String type, String address, String interestedColleagues,
                       String openingHours, int rating) {
@@ -25,7 +26,6 @@ public class Restaurant implements Parcelable {
         this.openingHours = openingHours;
         this.rating = rating;
     }
-
     public long getId() {
         return id;
     }
