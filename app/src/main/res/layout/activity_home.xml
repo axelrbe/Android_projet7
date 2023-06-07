@@ -14,7 +14,7 @@
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="76dp"
+            android:layout_height="56dp"
             android:elevation="4dp"
             android:background="@color/orange"
             android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"

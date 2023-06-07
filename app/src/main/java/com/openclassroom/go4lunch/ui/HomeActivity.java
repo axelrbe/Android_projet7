@@ -1,5 +1,6 @@
 package com.openclassroom.go4lunch.ui;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -40,7 +41,6 @@ import com.openclassroom.go4lunch.ui.restaurant.RestaurantAdapter;
 import com.openclassroom.go4lunch.users.UserManager;
 
 import java.util.List;
-import java.util.Objects;
 
 public class HomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     com.openclassroom.go4lunch.databinding.ActivityHomeBinding binding;
@@ -96,10 +96,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         } else if (item.getItemId() == R.id.left_nav_settings) {
             startActivity(new Intent(HomeActivity.this, SettingsActivity.class));
         } else if (item.getItemId() == R.id.left_nav_logout) {
-            userManager.signOut(this).addOnSuccessListener(aVoid -> {
-                startActivity(new Intent(HomeActivity.this, MainActivity.class));
-                finish();
-            });
+            showDialogForLogout();
         }
 
         mDrawerLayout.closeDrawer(GravityCompat.START);
@@ -177,5 +174,17 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 Log.d("Firestore", "get failed with ", task.getException());
             }
         });
+    }
+
+    private void showDialogForLogout() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Voulez-vous vraiment vous déconnecter ?")
+                .setPositiveButton(R.string.oui, (dialog, id) -> userManager.signOut(this).addOnSuccessListener(aVoid -> {
+                    startActivity(new Intent(HomeActivity.this, MainActivity.class));
+                    finish();
+                }))
+                .setNegativeButton(R.string.non, (dialog, id) -> finish())
+                .create()
+                .show();
     }
 }
