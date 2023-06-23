@@ -1,6 +1,8 @@
 package com.openclassroom.go4lunch.models;
 
-public class Workmates {
+import java.io.Serializable;
+
+public class Workmates implements Serializable {
     private String id;
     private String name, urlPicture, email;
     private Restaurant mRestaurant;

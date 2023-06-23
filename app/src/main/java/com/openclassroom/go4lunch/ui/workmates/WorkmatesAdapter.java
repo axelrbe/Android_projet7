@@ -18,9 +18,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.openclassroom.go4lunch.R;
-import com.openclassroom.go4lunch.models.Restaurant;
 import com.openclassroom.go4lunch.models.Workmates;
 
 import java.util.List;

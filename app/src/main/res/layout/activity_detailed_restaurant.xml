@@ -12,8 +12,8 @@
         android:layout_width="match_parent"
         android:layout_height="250dp"
         android:contentDescription="@string/restaurant_image"
-        android:scaleType="centerCrop"
-        android:src="@drawable/background_login_img"
+        android:scaleType="fitCenter"
+        android:adjustViewBounds="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -36,7 +36,7 @@
         android:layout_height="90dp"
         android:background="@color/orange"
         android:orientation="vertical"
-        android:padding="15dp"
+        android:padding="10dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/detailed_page_image">
@@ -44,7 +44,8 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:layout_marginTop="5dp">
 
             <TextView
                 android:id="@+id/detailed_page_name"
@@ -61,7 +62,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/rating"
-                android:numStars="3"
+                android:numStars="5"
                 android:progressTint="#FFD700"
                 android:layout_gravity="center"
                 android:layout_marginStart="10dp"
@@ -117,6 +118,7 @@
         app:layout_constraintTop_toBottomOf="@+id/linearLayout2">
 
         <TextView
+            android:id="@+id/link_to_phone_call"
             android:layout_width="137dp"
             android:layout_height="match_parent"
             android:gravity="center"
@@ -130,6 +132,7 @@
             app:drawableTopCompat="@drawable/baseline_local_phone_24" />
 
         <TextView
+            android:id="@+id/like_btn"
             android:layout_width="137dp"
             android:layout_height="match_parent"
             android:gravity="center"
@@ -143,6 +146,7 @@
             app:drawableTopCompat="@drawable/baseline_star_24" />
 
         <TextView
+            android:id="@+id/link_to_website"
             android:layout_width="137dp"
             android:layout_height="match_parent"
             android:gravity="center"

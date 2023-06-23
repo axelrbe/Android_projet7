@@ -1,18 +1,21 @@
 package com.openclassroom.go4lunch.repositories;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.openclassroom.go4lunch.models.Restaurant;
-import com.openclassroom.go4lunch.models.Workmates;
-import com.openclassroom.go4lunch.services.ApiService;
 
-import java.util.List;
-import java.util.Objects;
+import com.google.firebase.firestore.QuerySnapshot;
+import com.openclassroom.go4lunch.models.Restaurant;
+
+import java.util.Calendar;
+import java.util.Date;
 
 public class WorkmatesRepository {
-    private final ApiService mApiService;
 
-    public WorkmatesRepository(ApiService apiService) {mApiService = apiService;}
+    private static volatile WorkmatesRepository instance;
+    public static WorkmatesRepository getInstance() {
+        if(instance==null)
+        {
+            instance=new WorkmatesRepository();
+        }
+        return instance;
+    }
 
-    public List<Workmates> getWorkmatesList() {return mApiService.getAllWorkmates();}
 }

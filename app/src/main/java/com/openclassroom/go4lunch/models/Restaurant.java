@@ -1,117 +1,132 @@
 package com.openclassroom.go4lunch.models;
 
+import android.location.Location;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import androidx.annotation.NonNull;
-
-import java.util.Objects;
+import androidx.annotation.Nullable;
 
 public class Restaurant implements Parcelable {
-    private long id;
-    private String name, distance, type, address, interestedColleagues, openingHours;
+    private String idR;
+    private String name;
+    @Nullable
+    private String phone;
+    private Float rating;
+    @Nullable
+    private String type;
+    @Nullable
+    private String urlPicture;
+    @Nullable
+    private String webSite;
+    @Nullable
+    private String address;
+    private boolean isOpenNow;
+    private Location location;
 
-    //private int image; if there's one
-    private int rating; // Between 0 and 3 stars
-    private boolean notDecided;
 
-    public Restaurant(long id, String name, String distance, String type, String address, String interestedColleagues,
-                      String openingHours, int rating) {
-        this.id = id;
+    public Restaurant(String idR, String name, @Nullable String phone, Float rating, @Nullable String type,
+                      @Nullable String urlPicture, @Nullable String webSite, @Nullable String address,
+                      boolean isOpenNow, Location location) {
+        this.idR = idR;
         this.name = name;
-        this.distance = distance;
-        this.type = type;
-        this.address = address;
-        this.interestedColleagues = interestedColleagues;
-        this.openingHours = openingHours;
+        this.phone = phone;
         this.rating = rating;
-    }
-    public long getId() {
-        return id;
+        this.type = type;
+        this.urlPicture = urlPicture;
+        this.webSite = webSite;
+        this.address = address;
+        this.isOpenNow = isOpenNow;
+        this.location = location;
     }
 
-    public void setId(long id) {
-        this.id = id;
+    // --- GETTERS ---
+    public String getIdR() {
+        return idR;
     }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    @Nullable
+    public String getPhone() {
+        return phone;
     }
 
-    public String getDistance() {
-        return distance;
+    public Float getRating() {
+        return rating;
     }
 
-    public void setDistance(String distance) {
-        this.distance = distance;
-    }
-
-    /*public int getImage() {
-        return image;
-    }
-
-    public void setImage(int image) {
-        this.image = image;
-    }*/
-
+    @Nullable
     public String getType() {
         return type;
     }
 
-    public void setType(String type) {
+    @Nullable
+    public String getUrlPicture() {
+        return urlPicture;
+    }
+
+    @Nullable
+    public String getWebSite() {
+        return webSite;
+    }
+
+    // --- SETTERS ---
+    public void setIdR(String idR) {
+        this.idR = idR;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setPhone(@Nullable String phone) {
+        this.phone = phone;
+    }
+
+    public void setRating(Float rating) {
+        this.rating = rating;
+    }
+
+    public void setType(@Nullable String type) {
         this.type = type;
     }
 
+    public void setUrlPicture(@Nullable String urlPicture) {
+        this.urlPicture = urlPicture;
+    }
+
+    public void setWebSite(@Nullable String webSite) {
+        this.webSite = webSite;
+    }
+
+    @Nullable
     public String getAddress() {
         return address;
     }
 
-    public void setAddress(String address) {
+    public void setAddress(@Nullable String address) {
         this.address = address;
     }
 
-    public String getInterestedColleagues() {
-        return interestedColleagues;
+    public boolean isOpenNow() {
+        return isOpenNow;
     }
 
-    public void setInterestedColleagues(String interestedColleagues) {
-        this.interestedColleagues = interestedColleagues;
+    public void setOpenNow(boolean openNow) {
+        isOpenNow = openNow;
     }
 
-    public String getOpeningHours() {
-        return openingHours;
+    public Location getLocation() {
+        return location;
     }
 
-    public void setOpeningHours(String openingHours) {
-        this.openingHours = openingHours;
+    public void setLocation(Location location) {
+        this.location = location;
     }
 
-    public int getRating() {
-        return rating;
-    }
-
-    public void setRating(int numberOfPositiveReview) {
-        this.rating = numberOfPositiveReview;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Restaurant restaurant = (Restaurant) o;
-        return Objects.equals(id, restaurant.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    // ***************** Implementation of Parcelable ****************
+    /* Implémentation de parcelizable */
     public static final Parcelable.Creator<Restaurant> CREATOR = new Parcelable.Creator<Restaurant>() {
         public Restaurant createFromParcel(Parcel in) {
             return new Restaurant(in);
@@ -122,31 +137,31 @@ public class Restaurant implements Parcelable {
         }
     };
 
-    public Restaurant(Parcel in) {
-        id = in.readInt();
+    private Restaurant(Parcel in) {
+        idR = in.readString();
         name = in.readString();
-        distance = in.readString();
+        phone = in.readString();
+        rating = in.readFloat();
         type = in.readString();
+        urlPicture = in.readString();
+        webSite = in.readString();
         address = in.readString();
-        interestedColleagues = in.readString();
-        openingHours = in.readString();
-        rating = in.readInt();
+        isOpenNow = in.readByte() != 0;
     }
 
-    @Override
     public int describeContents() {
         return 0;
     }
 
-    @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeInt((int) id);
+        dest.writeString(idR);
         dest.writeString(name);
-        dest.writeString(distance);
+        dest.writeString(phone);
+        dest.writeFloat(rating);
         dest.writeString(type);
+        dest.writeString(urlPicture);
+        dest.writeString(webSite);
         dest.writeString(address);
-        dest.writeString(interestedColleagues);
-        dest.writeString(openingHours);
-        dest.writeInt(rating);
+        dest.writeByte((byte) (isOpenNow ? 1 : 0));
     }
 }

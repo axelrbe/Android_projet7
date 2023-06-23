@@ -11,33 +11,28 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.openclassroom.go4lunch.R;
-import com.openclassroom.go4lunch.injection.DI;
-import com.openclassroom.go4lunch.models.Restaurant;
-import com.openclassroom.go4lunch.services.ApiService;
+import com.openclassroom.go4lunch.repositories.RestaurantRepository;
 
-import java.util.List;
+import java.io.Serializable;
 
-public class RestaurantFragment extends Fragment {
+public class RestaurantFragment extends Fragment implements Serializable {
 
     RecyclerView mRestaurantRecyclerView;
     RestaurantAdapter mRestaurantAdapter;
-    List<Restaurant> mRestaurantList;
-    ApiService mApiService;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_list, container, false);
-
-        mApiService = DI.getApiService();
-
         mRestaurantRecyclerView = root.findViewById(R.id.list_recycler_view);
-        mRestaurantList = mApiService.getAllRestaurants();
-        mRestaurantAdapter = new RestaurantAdapter(getActivity(), mRestaurantList);
-        mRestaurantRecyclerView.setAdapter(mRestaurantAdapter);
-        mRestaurantRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), RecyclerView.VERTICAL, false));
-        mRestaurantRecyclerView.setHasFixedSize(true);
-        mRestaurantRecyclerView.setNestedScrollingEnabled(false);
 
+        RestaurantRepository.getInstance().getAllRestaurant().observe(requireActivity(), restaurants -> {
+            mRestaurantAdapter = new RestaurantAdapter(getActivity(), restaurants);
+            mRestaurantRecyclerView.setAdapter(mRestaurantAdapter);
+            mRestaurantRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity(),
+                    RecyclerView.VERTICAL, false));
+            mRestaurantRecyclerView.setHasFixedSize(true);
+            mRestaurantRecyclerView.setNestedScrollingEnabled(false);
+        });
         return root;
     }
 }

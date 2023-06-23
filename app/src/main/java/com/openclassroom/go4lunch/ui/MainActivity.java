@@ -7,17 +7,13 @@ import android.util.Log;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.res.ResourcesCompat;
 
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.ErrorCodes;
 import com.firebase.ui.auth.IdpResponse;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.openclassroom.go4lunch.R;
 import com.openclassroom.go4lunch.databinding.ActivityHomeBinding;
@@ -44,22 +40,12 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityHomeBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        List<AuthUI.IdpConfig> providers =
-                Arrays.asList(
-                        new AuthUI.IdpConfig.GoogleBuilder().build(),
-                        new AuthUI.IdpConfig.FacebookBuilder().build()
-                );
-
-        // Launch the activity
-        startActivityForResult(
-                AuthUI.getInstance()
-                        .createSignInIntentBuilder()
-                        .setTheme(R.style.LoginTheme)
-                        .setAvailableProviders(providers)
-                        .setIsSmartLockEnabled(false, true)
-                        .setLogo(R.drawable.app_logo)
-                        .build(),
-                RC_SIGN_IN);
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            Intent intent = new Intent(this, HomeActivity.class);
+            startActivity(intent);
+        } else {
+            launchAuthActivity();
+        }
     }
 
     @Override
@@ -78,19 +64,21 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "connection_succeed", Toast.LENGTH_SHORT).show();
 
                 currentUser = FirebaseAuth.getInstance().getCurrentUser();
+                assert currentUser != null;
                 userId = currentUser.getUid();
                 DocumentReference reference = db.collection("workmates").document(userId);
 
                 Map<String, Object> user = new HashMap<>();
+                assert response != null;
                 user.put("name", response.getUser().getName());
                 user.put("email", response.getUser().getEmail());
                 user.put("profilePicture", response.getUser().getPhotoUri());
                 user.put("providerId", response.getUser().getProviderId());
-                user.put("idSelectedRestaurant", 0);
+                user.put("idSelectedRestaurant", "");
 
                 boolean isNew = response.isNewUser();
                 if (isNew) {
-                    reference.set(user).addOnSuccessListener(unused -> Log.d("Firestore", "onSuccess: user profile is created for " + userId));
+                    reference.set(user).addOnSuccessListener(unused -> Log.d("usersInfos", "onSuccess: user profile is created for " + userId));
                 }
 
                 Intent intent = new Intent(getApplicationContext(), HomeActivity.class);
@@ -109,6 +97,25 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
+    }
+
+    private void launchAuthActivity() {
+        List<AuthUI.IdpConfig> providers =
+                Arrays.asList(
+                        new AuthUI.IdpConfig.GoogleBuilder().build(),
+                        new AuthUI.IdpConfig.FacebookBuilder().build()
+                );
+
+        // Launch the activity
+        startActivityForResult(
+                AuthUI.getInstance()
+                        .createSignInIntentBuilder()
+                        .setTheme(R.style.LoginTheme)
+                        .setAvailableProviders(providers)
+                        .setIsSmartLockEnabled(false, true)
+                        .setLogo(R.drawable.app_logo)
+                        .build(),
+                RC_SIGN_IN);
     }
 
     private void showSnackBar(String message) {

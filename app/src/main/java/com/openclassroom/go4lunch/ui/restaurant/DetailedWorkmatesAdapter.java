@@ -7,7 +7,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.RatingBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -20,11 +19,11 @@ import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.openclassroom.go4lunch.R;
 import com.openclassroom.go4lunch.models.Workmates;
-import com.openclassroom.go4lunch.ui.workmates.WorkmatesAdapter;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class DetailedWorkmatesAdapter extends RecyclerView.Adapter<DetailedWorkmatesAdapter.DetailedWorkmatesViewModel> {
+public class DetailedWorkmatesAdapter extends RecyclerView.Adapter<DetailedWorkmatesAdapter.DetailedWorkmatesViewModel> implements Serializable {
     Context context;
     List<Workmates> mDetailedWorkmatesList;
 

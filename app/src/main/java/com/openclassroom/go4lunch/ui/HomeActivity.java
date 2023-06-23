@@ -8,10 +8,8 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -19,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.lifecycle.Observer;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.NavigationUI;
@@ -33,27 +32,23 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.openclassroom.go4lunch.R;
 import com.openclassroom.go4lunch.databinding.ActivityHomeBinding;
-import com.openclassroom.go4lunch.injection.DI;
 import com.openclassroom.go4lunch.models.Restaurant;
-import com.openclassroom.go4lunch.services.ApiService;
+import com.openclassroom.go4lunch.repositories.RestaurantRepository;
 import com.openclassroom.go4lunch.ui.restaurant.DetailedRestaurantActivity;
 import com.openclassroom.go4lunch.ui.restaurant.RestaurantAdapter;
 import com.openclassroom.go4lunch.users.UserManager;
 
+import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 
-public class HomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+public class HomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, Serializable {
     com.openclassroom.go4lunch.databinding.ActivityHomeBinding binding;
     private DrawerLayout mDrawerLayout;
     private final UserManager userManager = UserManager.getInstance();
     private View headerLayout;
-
     TextView userName, userEmail;
     ImageView userImage;
-    ImageButton searchBtn;
-    private List<Restaurant> mRestaurantList;
-    ApiService mApiService;
-    Restaurant selectedRestaurant;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,14 +57,10 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         headerLayout = binding.leftNavView.getHeaderView(0);
         setContentView(binding.getRoot());
 
-        searchBtn = findViewById(R.id.search_button);
-        mApiService = DI.getApiService();
+        RestaurantRepository.getInstance().updateRestaurant();
 
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_home);
+        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupWithNavController(binding.navView, navController);
-
-        ApiService apiService = DI.getApiService();
-        mRestaurantList = apiService.getAllRestaurants();
 
         // Left nav menu drawer
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -92,13 +83,39 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.left_nav_your_lunch) {
-            goToSelectedRestaurantPage();
+            RestaurantRepository.getInstance().getAllRestaurant().observe(this, (Observer<List<Restaurant>>) restaurants -> {
+                FirebaseFirestore db = FirebaseFirestore.getInstance();
+                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                assert user != null;
+                String currentId = user.getUid();
+
+                DocumentReference docRef = db.collection("workmates").document(currentId);
+                docRef.get().addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
+                        if (document.exists()) {
+                            Log.d("homeActivity", "goToSelectedRestaurantPage: " + restaurants);
+                            for (Restaurant mRestaurant : restaurants) {
+                                if (Objects.equals(document.getString("idSelectedRestaurant"),
+                                        mRestaurant.getIdR())) {
+                                    Intent intent = new Intent(HomeActivity.this, DetailedRestaurantActivity.class);
+                                    intent.putExtra(RestaurantAdapter.RESTAURANT_INFO, mRestaurant);
+                                    startActivity(intent);
+                                }
+                            }
+                        } else {
+                            Log.d("homeActivity", "No such document");
+                        }
+                    } else {
+                        Log.d("homeActivity", "get failed with ", task.getException());
+                    }
+                });
+            });
         } else if (item.getItemId() == R.id.left_nav_settings) {
             startActivity(new Intent(HomeActivity.this, SettingsActivity.class));
         } else if (item.getItemId() == R.id.left_nav_logout) {
             showDialogForLogout();
         }
-
         mDrawerLayout.closeDrawer(GravityCompat.START);
         return true;
     }
@@ -135,7 +152,8 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     private void setTextUserData(FirebaseUser user) {
         //Get email & username from User
         String email = TextUtils.isEmpty(user.getEmail()) ? getString(R.string.info_no_email_found) : user.getEmail();
-        String username = TextUtils.isEmpty(user.getDisplayName()) ? getString(R.string.info_no_username_found) : user.getDisplayName();
+        String username = TextUtils.isEmpty(user.getDisplayName()) ? getString(R.string.info_no_username_found) :
+                user.getDisplayName();
 
         //Update views with data
         userName = headerLayout.findViewById(R.id.user_name);
@@ -144,45 +162,14 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         userEmail.setText(email);
     }
 
-    private void goToSelectedRestaurantPage() {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        String currentId = user.getUid();
-
-        DocumentReference docRef = db.collection("workmates").document(currentId);
-        docRef.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                DocumentSnapshot document = task.getResult();
-                if (document.exists()) {
-                    Log.d("Firestore", "DocumentSnapshot data: " + document);
-                    if (document.get("idSelectedRestaurant") != null) {
-                        for (Restaurant restaurant : mRestaurantList) {
-                            if (document.get("idSelectedRestaurant").hashCode() == restaurant.getId()) {
-                                selectedRestaurant = restaurant;
-                                Intent intent = new Intent(HomeActivity.this, DetailedRestaurantActivity.class);
-                                intent.putExtra(RestaurantAdapter.RESTAURANT_INFO, restaurant);
-                                startActivity(intent);
-                            }
-                        }
-                    } else {
-                        Toast.makeText(this, "Vous n'avez pas encore choisis de restaurant pour aujourd-hui !", Toast.LENGTH_SHORT).show();
-                    }
-                } else {
-                    Log.d("Firestore", "No such document");
-                }
-            } else {
-                Log.d("Firestore", "get failed with ", task.getException());
-            }
-        });
-    }
-
     private void showDialogForLogout() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage("Voulez-vous vraiment vous déconnecter ?")
-                .setPositiveButton(R.string.oui, (dialog, id) -> userManager.signOut(this).addOnSuccessListener(aVoid -> {
-                    startActivity(new Intent(HomeActivity.this, MainActivity.class));
-                    finish();
-                }))
+        builder.setMessage(R.string.logout_confirmation)
+                .setPositiveButton(R.string.oui,
+                        (dialog, id) -> userManager.signOut(this).addOnSuccessListener(aVoid -> {
+                            startActivity(new Intent(HomeActivity.this, MainActivity.class));
+                            finish();
+                        }))
                 .setNegativeButton(R.string.non, (dialog, id) -> finish())
                 .create()
                 .show();
