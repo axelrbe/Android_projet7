@@ -1,12 +1,14 @@
 package com.openclassroom.go4lunch.ui.restaurant;
 
-import android.opengl.Matrix;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -63,6 +65,14 @@ public class DetailedRestaurantActivity extends AppCompatActivity implements Ser
 
         arrowBack.setOnClickListener(v -> finish());
 
+        linkToWebsiteBtn.setOnClickListener(v -> {
+            String url = mRestaurant.getWebSite();
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse(url));
+            startActivity(intent);
+        });
+
+        linkToPhoneCallBtn.setOnClickListener(v -> callRestaurantListener());
         setAllRestaurantInfo();
         changeSelectedStatus();
         putWorkmatesInRecyclerView();
@@ -80,11 +90,11 @@ public class DetailedRestaurantActivity extends AppCompatActivity implements Ser
                         mDetailedWorkmatesList = new ArrayList<>();
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             if (!userId.equals(document.getId())) {
-                                Log.d("usersInfos", "Are they equals ? "
+                                Log.d("DetailedRestaurantActivity", "Are they equals ? "
                                         + Objects.equals(document.getString("idSelectedRestaurant"),
                                         mRestaurant.getIdR()));
-                                Log.d("usersInfos", "Detailed restaurant id = " +  mRestaurant.getIdR());
-                                Log.d("usersInfos", "documents restaurant ids = " + document.getString("idSelectedRestaurant"));
+                                Log.d("DetailedRestaurantActivity", "Detailed restaurant id = " +  mRestaurant.getIdR());
+                                Log.d("DetailedRestaurantActivity", "documents restaurant ids = " + document.getString("idSelectedRestaurant"));
                                 if (Objects.equals(document.getString("idSelectedRestaurant"), mRestaurant.getIdR())) {
                                     Workmates workmate = new Workmates(document.getId(),
                                             document.getString("name"),
@@ -105,7 +115,7 @@ public class DetailedRestaurantActivity extends AppCompatActivity implements Ser
                             }
                         }
                     } else {
-                        Log.d("usersInfos", "Error getting documents: ", task.getException());
+                        Log.d("DetailedRestaurantActivity", "Error getting documents: ", task.getException());
                     }
                 });
     }
@@ -135,7 +145,7 @@ public class DetailedRestaurantActivity extends AppCompatActivity implements Ser
             if (task.isSuccessful()) {
                 DocumentSnapshot document = task.getResult();
                 if (document.exists()) {
-                    Log.d("usersInfos", "DocumentSnapshot data: " + document);
+                    Log.d("DetailedRestaurantActivity", "DocumentSnapshot data: " + document);
                     if (document.get("idSelectedRestaurant") != null && Objects.equals(document.getString("idSelectedRestaurant"),
                             mRestaurant.getIdR())) {
                         selectRestaurantBtn.setImageDrawable(ResourcesCompat.getDrawable(getResources(),
@@ -175,11 +185,23 @@ public class DetailedRestaurantActivity extends AppCompatActivity implements Ser
 
                     });
                 } else {
-                    Log.d("usersInfos", "No such document");
+                    Log.d("DetailedRestaurantActivity", "No such document");
                 }
             } else {
-                Log.d("usersInfos", "get failed with ", task.getException());
+                Log.d("DetailedRestaurantActivity", "get failed with ", task.getException());
             }
         });
+    }
+
+    private void callRestaurantListener() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(DetailedRestaurantActivity.this);
+        builder.setMessage(R.string.call_restaurant_question)
+                .setTitle(mRestaurant.getName() + "\n" + mRestaurant.getPhone())
+                .setIcon(R.drawable.baseline_local_phone_24)
+                .setPositiveButton(R.string.oui, (dialog, which) -> {
+                    Intent intent = new Intent(Intent.ACTION_DIAL);
+                    intent.setData(Uri.parse("tel:" + mRestaurant.getPhone()));
+                    startActivity(intent);
+                }).setNegativeButton(R.string.non, (dialog, which) -> finish()).create().show();
     }
 }

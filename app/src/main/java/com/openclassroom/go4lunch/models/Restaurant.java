@@ -1,10 +1,12 @@
 package com.openclassroom.go4lunch.models;
 
-import android.location.Location;
 import android.os.Parcel;
 import android.os.Parcelable;
 
 import androidx.annotation.Nullable;
+
+import com.google.android.gms.maps.model.LatLng;
+
 
 public class Restaurant implements Parcelable {
     private String idR;
@@ -21,12 +23,12 @@ public class Restaurant implements Parcelable {
     @Nullable
     private String address;
     private boolean isOpenNow;
-    private Location location;
+    private LatLng mLatLng;
 
 
     public Restaurant(String idR, String name, @Nullable String phone, Float rating, @Nullable String type,
                       @Nullable String urlPicture, @Nullable String webSite, @Nullable String address,
-                      boolean isOpenNow, Location location) {
+                      boolean isOpenNow, LatLng mLatLng) {
         this.idR = idR;
         this.name = name;
         this.phone = phone;
@@ -36,16 +38,23 @@ public class Restaurant implements Parcelable {
         this.webSite = webSite;
         this.address = address;
         this.isOpenNow = isOpenNow;
-        this.location = location;
+        this.mLatLng = mLatLng;
     }
 
-    // --- GETTERS ---
     public String getIdR() {
         return idR;
     }
 
+    public void setIdR(String idR) {
+        this.idR = idR;
+    }
+
     public String getName() {
         return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Nullable
@@ -53,8 +62,16 @@ public class Restaurant implements Parcelable {
         return phone;
     }
 
+    public void setPhone(@Nullable String phone) {
+        this.phone = phone;
+    }
+
     public Float getRating() {
         return rating;
+    }
+
+    public void setRating(Float rating) {
+        this.rating = rating;
     }
 
     @Nullable
@@ -62,39 +79,22 @@ public class Restaurant implements Parcelable {
         return type;
     }
 
+    public void setType(@Nullable String type) {
+        this.type = type;
+    }
+
     @Nullable
     public String getUrlPicture() {
         return urlPicture;
     }
 
+    public void setUrlPicture(@Nullable String urlPicture) {
+        this.urlPicture = urlPicture;
+    }
+
     @Nullable
     public String getWebSite() {
         return webSite;
-    }
-
-    // --- SETTERS ---
-    public void setIdR(String idR) {
-        this.idR = idR;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setPhone(@Nullable String phone) {
-        this.phone = phone;
-    }
-
-    public void setRating(Float rating) {
-        this.rating = rating;
-    }
-
-    public void setType(@Nullable String type) {
-        this.type = type;
-    }
-
-    public void setUrlPicture(@Nullable String urlPicture) {
-        this.urlPicture = urlPicture;
     }
 
     public void setWebSite(@Nullable String webSite) {
@@ -118,12 +118,12 @@ public class Restaurant implements Parcelable {
         isOpenNow = openNow;
     }
 
-    public Location getLocation() {
-        return location;
+    public LatLng getLatLng() {
+        return mLatLng;
     }
 
-    public void setLocation(Location location) {
-        this.location = location;
+    public void setLatLng(LatLng latLng) {
+        mLatLng = latLng;
     }
 
     /* Implémentation de parcelizable */

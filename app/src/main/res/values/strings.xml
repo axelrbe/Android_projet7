@@ -58,5 +58,6 @@
     <string name="some_distance">some distance</string>
     <string name="ouvert">Ouvert</string>
     <string name="ferme">Fermé</string>
+    <string name="call_restaurant_question">Voulez-vous vraiment appeler ce restaurant ?</string>
 
 </resources>

@@ -1,11 +1,22 @@
 package com.openclassroom.go4lunch.repositories;
 
 
+import android.content.Context;
+import android.location.Location;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.MutableLiveData;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.tasks.Task;
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.net.FetchPlaceRequest;
+import com.google.android.libraries.places.api.net.FetchPlaceResponse;
+import com.google.android.libraries.places.api.net.PlacesClient;
 import com.openclassroom.go4lunch.BuildConfig;
 import com.openclassroom.go4lunch.models.Restaurant;
 import com.openclassroom.go4lunch.models.entities.PlacesResults;
@@ -15,7 +26,9 @@ import com.openclassroom.go4lunch.retrofit.GoogleMapAPI;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -24,15 +37,22 @@ import retrofit2.Response;
 public class RestaurantRepository implements Serializable {
 
     private static volatile RestaurantRepository instance;
-    private MutableLiveData<List<Restaurant>> mRestaurantList = new MutableLiveData<>();
+    private final MutableLiveData<List<Restaurant>> mRestaurantList = new MutableLiveData<>();
     private List<Restaurant> listOfRestaurant;
+    private Place place;
+    private String phoneNumber, websiteUrl;
+    private boolean openingHours;
+    private LatLng mLatLng;
+    private final Context mContext;
 
-    public RestaurantRepository() {
+
+    public RestaurantRepository(Context context) {
+        mContext = context;
     }
 
-    public static RestaurantRepository getInstance() {
+    public static RestaurantRepository getInstance(Context context) {
         if (instance == null) {
-            instance = new RestaurantRepository();
+            instance = new RestaurantRepository(context);
         }
         return instance;
     }
@@ -41,51 +61,80 @@ public class RestaurantRepository implements Serializable {
         return mRestaurantList;
     }
 
-    public void updateRestaurant() {
-        String location = "48.9652044,1.8744598";
-        int radius = 1500;
-        String type = "restaurant";
-        String key = BuildConfig.MAPS_API_KEY;
+    public void updateRestaurant(Context context) {
+        if (!Places.isInitialized()) {
+            Places.initialize(context, BuildConfig.MAPS_API_KEY, Locale.FRANCE);
+        }
 
+        FusedLocationProviderClient fusedLocationProviderClient =
+                LocationServices.getFusedLocationProviderClient(mContext);
         listOfRestaurant = new ArrayList<>();
-
+        PlacesClient mPlacesClient = Places.createClient(context);
+        final List<Place.Field> placeFields = Arrays.asList(Place.Field.PHONE_NUMBER, Place.Field.WEBSITE_URI, Place.Field.OPENING_HOURS,
+                Place.Field.UTC_OFFSET, Place.Field.LAT_LNG);
         GoogleMapAPI googleMapAPI = ApiClient.getClient().create(GoogleMapAPI.class);
-        googleMapAPI.getAllRestaurant(location, radius, type, key).enqueue(new Callback<PlacesResults>() {
-            @Override
-            public void onResponse(@NonNull Call<PlacesResults> call, @NonNull Response<PlacesResults> response) {
-                if (response.isSuccessful()) {
-                    assert response.body() != null;
-                    List<Result> results = response.body().getResults();
-                    Log.d("RestaurantFragment", "list of results: " + results);
 
-                    for (Result result : results) {
-                        if (result.getPhotos() != null && result.getRating() != null) {
-                            String urlPicture = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=50" +
-                                    "&photoreference="
-                                    + result.getPhotos().get(0).getPhotoReference() + "&key=" + key;
-                            Restaurant restaurant = new Restaurant(result.getPlaceId(), result.getName(),
-                                    result.getRating().toString(), result.getRating().floatValue(),
-                                    result.getTypes().get(1), urlPicture,
-                                    result.getBusinessStatus(), result.getVicinity(), false, result.getGeometry().getLocation());
-                            listOfRestaurant.add(restaurant);
-                        } else {
-                            Restaurant restaurant = new Restaurant(result.getPlaceId(), result.getName(),
-                                    "4255266", 4F,
-                                    result.getTypes().get(1), "",
-                                    result.getBusinessStatus(), result.getVicinity(), false, result.getGeometry().getLocation());
-                            listOfRestaurant.add(restaurant);
+        try {
+            Task<Location> locationResult = fusedLocationProviderClient.getLastLocation();
+            locationResult.addOnSuccessListener(location -> {
+                if (location != null) {
+                    Log.d("RestaurantRepository", "get the current location : " + location.getLatitude() + "," + location.getLongitude());
+                    String currentLocation = location.getLatitude() + "," + location.getLongitude();
+                    googleMapAPI.getAllRestaurant(currentLocation, 1500, "restaurant", BuildConfig.MAPS_API_KEY).enqueue(new Callback<PlacesResults>() {
+                        @Override
+                        public void onResponse(@NonNull Call<PlacesResults> call, @NonNull Response<PlacesResults> response) {
+                            if (response.isSuccessful()) {
+                                assert response.body() != null;
+                                List<Result> results = response.body().getResults();
+
+                                for (Result result : results) {
+                                    String placeId = result.getPlaceId();
+                                    FetchPlaceRequest request = FetchPlaceRequest.newInstance(placeId, placeFields);
+
+                                    Task<FetchPlaceResponse> task = mPlacesClient.fetchPlace(request);
+                                    task.addOnSuccessListener(fetchPlaceResponse -> {
+                                        place = fetchPlaceResponse.getPlace();
+                                        websiteUrl = String.valueOf(place.getWebsiteUri());
+                                        phoneNumber = place.getPhoneNumber();
+                                        mLatLng = place.getLatLng();
+                                        openingHours = Boolean.TRUE.equals(place.isOpen());
+
+                                        if (result.getPhotos() != null && result.getRating() != null && websiteUrl != null) {
+                                            String urlPicture = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=2000" +
+                                                    "&photoreference="
+                                                    + result.getPhotos().get(0).getPhotoReference() + "&key=" + BuildConfig.MAPS_API_KEY;
+                                            Restaurant restaurant = new Restaurant(result.getPlaceId(), result.getName(),
+                                                    phoneNumber, result.getRating().floatValue(),
+                                                    result.getTypes().get(1), urlPicture,
+                                                    websiteUrl, result.getVicinity(), openingHours, mLatLng);
+                                            listOfRestaurant.add(restaurant);
+                                        } else {
+                                            Restaurant restaurant = new Restaurant(result.getPlaceId(), result.getName(),
+                                                    phoneNumber, 0F,
+                                                    result.getTypes().get(1), "",
+                                                    websiteUrl, result.getVicinity(), openingHours, mLatLng);
+                                            listOfRestaurant.add(restaurant);
+                                        }
+                                        mRestaurantList.postValue(listOfRestaurant);
+                                    }).addOnFailureListener(e -> Log.d("RestaurantRepository", "Fail to call place details : " + e.getMessage()));
+
+                                }
+                            } else {
+                                Log.d("RestaurantRepository", "Failed");
+                            }
                         }
-                    }
-                    mRestaurantList.postValue(listOfRestaurant);
-                } else {
-                    Log.d("RestaurantRepository", "Failed");
-                }
-            }
 
-            @Override
-            public void onFailure(@NonNull Call<PlacesResults> call, @NonNull Throwable t) {
-                Log.d("RestaurantRepository", "onFailure: " + t.getMessage());
-            }
-        });
+                        @Override
+                        public void onFailure(@NonNull Call<PlacesResults> call, @NonNull Throwable t) {
+                            Log.d("RestaurantRepository", "onFailure: " + t.getMessage());
+                        }
+                    });
+                } else {
+                    Log.e("RestaurantRepository", "Error getting device location");
+                }
+            });
+        } catch (SecurityException e) {
+            Log.e("RestaurantRepository", "Error getting device location", e);
+        }
     }
 }
