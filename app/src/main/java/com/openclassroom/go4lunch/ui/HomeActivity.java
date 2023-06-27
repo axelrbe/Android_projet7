@@ -57,7 +57,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         headerLayout = binding.leftNavView.getHeaderView(0);
         setContentView(binding.getRoot());
 
-        RestaurantRepository.getInstance(this).updateRestaurant(this);
+        RestaurantRepository.getInstance().updateRestaurant(this);
 
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupWithNavController(binding.navView, navController);
@@ -83,7 +83,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.left_nav_your_lunch) {
-            RestaurantRepository.getInstance(this).getAllRestaurant().observe(this, (Observer<List<Restaurant>>) restaurants -> {
+            RestaurantRepository.getInstance().getAllRestaurant().observe(this, (Observer<List<Restaurant>>) restaurants -> {
                 FirebaseFirestore db = FirebaseFirestore.getInstance();
                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                 assert user != null;

@@ -59,5 +59,9 @@
     <string name="ouvert">Ouvert</string>
     <string name="ferme">Fermé</string>
     <string name="call_restaurant_question">Voulez-vous vraiment appeler ce restaurant ?</string>
+    <string name="image_of_the_restaurant">image of the restaurant</string>
+    <string name="restaurant_name">Restaurant Name</string>
+    <string name="open_page_detailed">Voulez-vous vraiment ouvrir la page détaillé de ce restaurant ?</string>
+    <string name="restaurant_address">restaurant_address</string>
 
 </resources>

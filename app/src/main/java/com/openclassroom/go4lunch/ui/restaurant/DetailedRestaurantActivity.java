@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
@@ -124,8 +125,13 @@ public class DetailedRestaurantActivity extends AppCompatActivity implements Ser
         if (mRestaurant != null) {
             restaurantName.setText(mRestaurant.getName());
             restaurantType.setText(mRestaurant.getType());
-            restaurantRating.setRating(mRestaurant.getRating());
             restaurantAddress.setText(mRestaurant.getAddress());
+
+            if(mRestaurant.getRating() != 0F) {
+                restaurantRating.setRating(mRestaurant.getRating());
+            } else {
+                restaurantRating.setVisibility(View.GONE);
+            }
 
             Glide.with(this)
                     .load(mRestaurant.getUrlPicture())

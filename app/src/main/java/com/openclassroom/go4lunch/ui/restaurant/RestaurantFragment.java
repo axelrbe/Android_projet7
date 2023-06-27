@@ -27,11 +27,7 @@ public class RestaurantFragment extends Fragment implements Serializable {
         View root = inflater.inflate(R.layout.fragment_list, container, false);
         mRestaurantRecyclerView = root.findViewById(R.id.list_recycler_view);
 
-        RestaurantRepository.getInstance(requireContext()).getAllRestaurant().observe(requireActivity(), restaurants -> {
-            for (Restaurant restaurant : restaurants) {
-                Log.d("RestaurantFragment", "onCreateView: " + restaurant.getLatLng().latitude);
-                Log.d("RestaurantFragment", "onCreateView: " + restaurant.getLatLng().longitude);
-            }
+        RestaurantRepository.getInstance().getAllRestaurant().observe(requireActivity(), restaurants -> {
             mRestaurantAdapter = new RestaurantAdapter(getActivity(), restaurants);
             mRestaurantRecyclerView.setAdapter(mRestaurantAdapter);
             mRestaurantRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity(),

@@ -1,7 +1,11 @@
 package com.openclassroom.go4lunch.ui.restaurant;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,30 +15,33 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.tasks.Task;
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.net.FetchPlaceRequest;
+import com.google.android.libraries.places.api.net.FetchPlaceResponse;
+import com.google.android.libraries.places.api.net.PlacesClient;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.Query;
 import com.openclassroom.go4lunch.R;
 import com.openclassroom.go4lunch.models.Restaurant;
 
 import java.io.Serializable;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 
-public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.RestaurantViewModel> implements Serializable{
+public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.RestaurantViewModel> implements Serializable {
     public static final String RESTAURANT_INFO = "getRestaurantInfoWithExtra";
     Context context;
     List<Restaurant> mRestaurantList;
-    FirebaseUser currentUser;
-    String userId;
-    private int interestedColleagues = 0;
 
     public RestaurantAdapter(Context context, List<Restaurant> restaurantList) {
         this.context = context;
@@ -50,29 +57,49 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
 
     @Override
     public void onBindViewHolder(@NonNull RestaurantViewModel holder, int position) {
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        if (location != null) {
+            double userLatitude = location.getLatitude();
+            double userLongitude = location.getLongitude();
+
+            PlacesClient placesClient = Places.createClient(context);
+            String placeId = mRestaurantList.get(position).getIdR();
+            List<Place.Field> placeFields = Collections.singletonList(Place.Field.LAT_LNG);
+            FetchPlaceRequest request = FetchPlaceRequest.newInstance(placeId, placeFields);
+            Task<FetchPlaceResponse> placeTask = placesClient.fetchPlace(request);
+            placeTask.addOnSuccessListener(fetchPlaceResponse -> {
+                Place place = fetchPlaceResponse.getPlace();
+                LatLng placeLatLng = place.getLatLng();
+
+                float[] distance = new float[1];
+                assert placeLatLng != null;
+                Location.distanceBetween(userLatitude, userLongitude, placeLatLng.latitude, placeLatLng.longitude, distance);
+                float distanceInMeters = distance[0];
+                int finalDistance = (int) distanceInMeters;
+
+                holder.distance.setText(String.format("%sm", finalDistance));
+            });
+        }
+
+
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("workmates")
-                .get()
-                .addOnCompleteListener(task -> {
-                    currentUser = FirebaseAuth.getInstance().getCurrentUser();
-                    assert currentUser != null;
-                    userId = currentUser.getUid();
-                    if (task.isSuccessful()) {
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            if (!userId.equals(document.getId())) {
-                                if (Objects.equals(document.getString("idSelectedRestaurant"),
-                                        mRestaurantList.get(position).getIdR())) {
-                                    interestedColleagues++;
-                                    holder.numOfColleagues.setText(String.format(Locale.ENGLISH, "(%d)", interestedColleagues));
-                                } else {
-                                    holder.numOfColleagues.setText("(0)");
-                                }
-                            }
-                        }
-                    } else {
-                        Log.d("RestaurantAdapter", "Error getting documents: ", task.getException());
-                    }
-                });
+        String restaurantId = mRestaurantList.get(position).getIdR();
+        CollectionReference usersRef = db.collection("workmates");
+        Query query = usersRef.whereEqualTo("idSelectedRestaurant", restaurantId);
+        query.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                int interestedWorkmates = task.getResult().size();
+                holder.numOfColleagues.setText(String.format(Locale.ENGLISH, "(%d)", interestedWorkmates));
+            } else {
+                holder.numOfColleagues.setText("(0)");
+                Log.d("RestaurantAdapter", "error getting documents: " + task.getException());
+            }
+        });
 
         if (mRestaurantList.get(position).isOpenNow()) {
             holder.openingHours.setTextColor(ContextCompat.getColor(context, R.color.green));
@@ -84,9 +111,12 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
 
         holder.name.setText(mRestaurantList.get(position).getName());
         holder.address.setText(mRestaurantList.get(position).getAddress());
-        holder.distance.setText(String.format("%sm", "100"));
         holder.type.setText(mRestaurantList.get(position).getType());
-        holder.ratingBar.setRating(mRestaurantList.get(position).getRating());
+        if (mRestaurantList.get(position).getRating() != 0F) {
+            holder.ratingBar.setRating(mRestaurantList.get(position).getRating());
+        } else {
+            holder.ratingBar.setVisibility(View.GONE);
+        }
 
         Glide.with(context)
                 .load(mRestaurantList.get(position).getUrlPicture())

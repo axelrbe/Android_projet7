@@ -51,7 +51,7 @@ public class WorkmatesFragment extends Fragment {
 
         mWorkmatesRecyclerView = root.findViewById(R.id.workmates_recycler_view);
 
-        RestaurantRepository.getInstance(requireContext()).getAllRestaurant().observe(requireActivity(), restaurants -> {
+        RestaurantRepository.getInstance().getAllRestaurant().observe(requireActivity(), restaurants -> {
             FirebaseFirestore db = FirebaseFirestore.getInstance();
             db.collection("workmates")
                     .get()
