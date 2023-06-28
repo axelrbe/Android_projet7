@@ -75,6 +75,7 @@ dependencies {
     implementation platform('com.google.firebase:firebase-bom:32.0.0')
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.google.firebase:firebase-messaging'
+    implementation 'com.google.firebase:firebase-config:21.4.0'
 
     // FIREBASE UI
     implementation 'com.firebaseui:firebase-ui-auth:7.2.0'

@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.RingtoneManager;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
@@ -19,8 +20,11 @@ import com.openclassroom.go4lunch.ui.MainActivity;
 
 public class NotificationService extends FirebaseMessagingService {
 
-    private final int NOTIFICATION_ID = 007;
-    private final String NOTIFICATION_TAG = "FIREBASEOC";
+    @Override
+    public void onNewToken(@NonNull String token) {
+        super.onNewToken(token);
+        Log.d("NotificationService", "onNewToken: " + token);
+    }
 
     @Override
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
@@ -36,7 +40,8 @@ public class NotificationService extends FirebaseMessagingService {
 
         // Create an Intent that will be shown when user will click on the Notification
         Intent intent = new Intent(this, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,
+                PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
 
         // Create a Channel (Android 8)
         String channelId = getString(R.string.default_notification_channel_id);
@@ -62,6 +67,8 @@ public class NotificationService extends FirebaseMessagingService {
         }
 
         // Show notification
+        int NOTIFICATION_ID = 7;
+        String NOTIFICATION_TAG = "FIREBASEOC";
         notificationManager.notify(NOTIFICATION_TAG, NOTIFICATION_ID, notificationBuilder.build());
     }
 }
