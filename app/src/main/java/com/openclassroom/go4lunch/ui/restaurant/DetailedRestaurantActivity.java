@@ -35,7 +35,7 @@ import java.util.Objects;
 
 public class DetailedRestaurantActivity extends AppCompatActivity implements Serializable {
 
-    TextView restaurantName, restaurantType, restaurantAddress, linkToWebsiteBtn, linkToPhoneCallBtn, likeBtn;
+    TextView restaurantName, restaurantAddress, linkToWebsiteBtn, linkToPhoneCallBtn, likeBtn;
     RatingBar restaurantRating;
     ImageView restaurantImage, arrowBack;
     Restaurant mRestaurant;
@@ -54,7 +54,6 @@ public class DetailedRestaurantActivity extends AppCompatActivity implements Ser
         mRestaurant = (Restaurant) getIntent().getParcelableExtra(RestaurantAdapter.RESTAURANT_INFO);
 
         restaurantName = findViewById(R.id.detailed_page_name);
-        restaurantType = findViewById(R.id.detailed_page_type);
         restaurantAddress = findViewById(R.id.detailed_page_address);
         restaurantRating = findViewById(R.id.detailed_page_rating);
         restaurantImage = findViewById(R.id.detailed_page_image);
@@ -124,7 +123,6 @@ public class DetailedRestaurantActivity extends AppCompatActivity implements Ser
     private void setAllRestaurantInfo() {
         if (mRestaurant != null) {
             restaurantName.setText(mRestaurant.getName());
-            restaurantType.setText(mRestaurant.getType());
             restaurantAddress.setText(mRestaurant.getAddress());
 
             if(mRestaurant.getRating() != 0F) {

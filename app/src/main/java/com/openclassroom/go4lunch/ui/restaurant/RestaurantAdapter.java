@@ -10,7 +10,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
@@ -51,7 +53,7 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
     @NonNull
     @Override
     public RestaurantViewModel onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new RestaurantViewModel(LayoutInflater.from(parent.getContext()).inflate(R.layout.list_item, parent,
+        return new RestaurantViewModel(LayoutInflater.from(parent.getContext()).inflate(R.layout.restaurant_list_item, parent,
                 false));
     }
 
@@ -111,7 +113,6 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
 
         holder.name.setText(mRestaurantList.get(position).getName());
         holder.address.setText(mRestaurantList.get(position).getAddress());
-        holder.type.setText(mRestaurantList.get(position).getType());
         if (mRestaurantList.get(position).getRating() != 0F) {
             holder.ratingBar.setRating(mRestaurantList.get(position).getRating());
         } else {
@@ -136,21 +137,24 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
 
     public static class RestaurantViewModel extends RecyclerView.ViewHolder {
 
-        TextView name, address, type, openingHours, distance, numOfColleagues;
+        TextView name, address, openingHours, distance, numOfColleagues;
         ImageView image;
         RatingBar ratingBar;
+         HorizontalScrollView horizontalScrollView;
+         LinearLayout scrollableLinearLayout;
 
         public RestaurantViewModel(@NonNull View itemView) {
             super(itemView);
 
             name = itemView.findViewById(R.id.restaurant_name);
             address = itemView.findViewById(R.id.restaurant_address);
-            type = itemView.findViewById(R.id.restaurant_type);
             openingHours = itemView.findViewById(R.id.restaurant_opening_hours);
             distance = itemView.findViewById(R.id.restaurant_distance);
             numOfColleagues = itemView.findViewById(R.id.restaurant_numOfColleagues);
             ratingBar = itemView.findViewById(R.id.restaurant_rating);
             image = itemView.findViewById(R.id.imageView);
+            horizontalScrollView = itemView.findViewById(R.id.horizontal_scroll_view);
+            scrollableLinearLayout = itemView.findViewById(R.id.scrollable_linear_layout);
         }
     }
 }
