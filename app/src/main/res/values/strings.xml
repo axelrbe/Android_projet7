@@ -63,5 +63,6 @@
     <string name="restaurant_name">Restaurant Name</string>
     <string name="open_page_detailed">Voulez-vous vraiment ouvrir la page détaillé de ce restaurant ?</string>
     <string name="restaurant_address">restaurant_address</string>
+    <string name="search_restaurant_btn">Button to search restaurant</string>
 
 </resources>

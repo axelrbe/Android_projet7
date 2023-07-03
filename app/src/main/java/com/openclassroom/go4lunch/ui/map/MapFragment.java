@@ -1,12 +1,15 @@
 package com.openclassroom.go4lunch.ui.map;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,9 +21,13 @@ import androidx.fragment.app.Fragment;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.openclassroom.go4lunch.R;
 import com.openclassroom.go4lunch.models.Restaurant;
 import com.openclassroom.go4lunch.repositories.RestaurantRepository;
@@ -32,14 +39,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MapFragment extends Fragment implements Serializable {
-    private SupportMapFragment mapFragment;
+    public SupportMapFragment mapFragment;
     Context context;
-    private GoogleMap mGoogleMap;
+    public GoogleMap mGoogleMap;
     private LocationManager mLocationManager;
     private LocationListener mLocationListener;
     List<Restaurant> mRestaurantList = new ArrayList<>();
     private MarkerOptions mMarkerOptions;
-
     public MapFragment() {
     }
 
@@ -56,6 +62,25 @@ public class MapFragment extends Fragment implements Serializable {
             for (Restaurant restaurant : restaurants) {
                 mRestaurantList.add(restaurant);
 
+                FirebaseFirestore firebaseFirestore = FirebaseFirestore.getInstance();
+                CollectionReference restaurantsRef = firebaseFirestore.collection("workmates");
+
+                restaurantsRef.whereEqualTo("idSelectedRestaurant", restaurant.getIdR())
+                        .get()
+                        .addOnSuccessListener(querySnapshot -> {
+                            // Iterate over the retrieved documents and change the color of the corresponding markers
+                            for (QueryDocumentSnapshot ignored : querySnapshot) {
+                                mGoogleMap.addMarker(new MarkerOptions()
+                                        .position(restaurant.getLatLng())
+                                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+                                        .title(restaurant.getName())
+                                        .snippet(restaurant.getAddress())
+                                        .anchor(0.5f, 0.5f)
+                                        .flat(true));
+                            }
+                        })
+                        .addOnFailureListener(e -> Log.e("MapFragment", "Error getting selected restaurants", e));
+
                 mMarkerOptions = new MarkerOptions()
                         .position(restaurant.getLatLng())
                         .title(restaurant.getName())
@@ -67,10 +92,18 @@ public class MapFragment extends Fragment implements Serializable {
             }
 
             mGoogleMap.setOnMarkerClickListener(marker -> {
-                Restaurant selectedRestaurant = getRestaurantByMarker(marker);
-                Intent intent = new Intent(requireContext(), DetailedRestaurantActivity.class);
-                intent.putExtra(RestaurantAdapter.RESTAURANT_INFO, selectedRestaurant);
-                startActivity(intent);
+                AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+                builder.setTitle(marker.getTitle())
+                        .setIcon(R.drawable.baseline_restaurant_24)
+                        .setMessage(marker.getSnippet() + "\n\n" + R.string.open_page_detailed)
+                        .setPositiveButton(R.string.oui, (DialogInterface.OnClickListener) (dialog, which) -> {
+                            Restaurant selectedRestaurant = getRestaurantByMarker(marker);
+                            Intent intent = new Intent(requireContext(), DetailedRestaurantActivity.class);
+                            intent.putExtra(RestaurantAdapter.RESTAURANT_INFO, selectedRestaurant);
+                            startActivity(intent);
+                        })
+                        .setNegativeButton(R.string.non, null)
+                        .show();
                 return true;
             });
         });
