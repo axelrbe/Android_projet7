@@ -64,5 +64,11 @@
     <string name="open_page_detailed">Voulez-vous vraiment ouvrir la page détaillé de ce restaurant ?</string>
     <string name="restaurant_address">restaurant_address</string>
     <string name="search_restaurant_btn">Button to search restaurant</string>
+    <string name="button_filter">button filter</string>
+    <string name="rating_filter">Filter par rating</string>
+    <string name="distance_filter">Filter par distance</string>
+    <string name="alphabetical_filter">Filter par ordre alphabetique</string>
+    <string name="reset_filter">reinitialiser les filtres</string>
+    <string name="workmates_filter">Filtrer par nombres de collègues</string>
 
 </resources>

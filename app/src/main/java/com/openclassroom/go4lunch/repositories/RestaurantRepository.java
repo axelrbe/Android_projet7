@@ -126,13 +126,13 @@ public class RestaurantRepository implements Serializable {
                                 Restaurant restaurant = new Restaurant(result.getPlaceId(), result.getName(),
                                         phoneNumber, result.getRating().floatValue(),
                                         result.getTypes().get(1), urlPicture,
-                                        websiteUrl, result.getVicinity(), isOpenNow, mLatLng);
+                                        websiteUrl, result.getVicinity(), isOpenNow, mLatLng, 0, 0);
                                 listOfRestaurant.add(restaurant);
                             } else {
                                 Restaurant restaurant = new Restaurant(result.getPlaceId(), result.getName(),
                                         phoneNumber, 0F,
                                         result.getTypes().get(1), "https://images.pexels.com/photos/914388/pexels-photo-914388.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-                                        websiteUrl, result.getVicinity(), isOpenNow, mLatLng);
+                                        websiteUrl, result.getVicinity(), isOpenNow, mLatLng, 0, 0);
                                 listOfRestaurant.add(restaurant);
                             }
                             mRestaurantList.postValue(listOfRestaurant);

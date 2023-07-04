@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_item_rating"
+        android:title="@string/rating_filter" />
+    <item
+        android:id="@+id/menu_item_distance"
+        android:title="@string/distance_filter" />
+    <item
+        android:id="@+id/menu_item_alphabetical"
+        android:title="@string/alphabetical_filter" />
+    <item
+        android:id="@+id/menu_item_workmates"
+        android:title="@string/workmates_filter" />
+</menu>

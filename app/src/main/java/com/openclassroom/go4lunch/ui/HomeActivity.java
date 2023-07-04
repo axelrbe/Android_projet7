@@ -103,7 +103,22 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         updateUIWithUserData();
 
         // Get the user location
+        getCurrentLocation();
 
+        // Autocomplete implementation
+        ImageButton searchView = findViewById(R.id.autocomplete_search_view);
+        CardView autocompleteContainer = findViewById(R.id.autocomplete_container);
+        searchView.setOnClickListener(v -> {
+            if (autocompleteContainer.getVisibility() == View.VISIBLE) {
+                autocompleteContainer.setVisibility(View.GONE);
+            } else {
+                autocompleteContainer.setVisibility(View.VISIBLE);
+            }
+        });
+        autocompleteImplementation();
+    }
+
+    private void getCurrentLocation() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
@@ -133,18 +148,6 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 }
             });
         }
-
-        // Autocomplete implementation
-        ImageButton searchView = findViewById(R.id.autocomplete_search_view);
-        CardView autocompleteContainer = findViewById(R.id.autocomplete_container);
-        searchView.setOnClickListener(v -> {
-            if (autocompleteContainer.getVisibility() == View.VISIBLE) {
-                autocompleteContainer.setVisibility(View.GONE);
-            } else {
-                autocompleteContainer.setVisibility(View.VISIBLE);
-            }
-        });
-        autocompleteImplementation();
     }
 
     private void autocompleteImplementation() {

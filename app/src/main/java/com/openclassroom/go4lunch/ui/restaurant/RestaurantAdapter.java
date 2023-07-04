@@ -1,6 +1,7 @@
 package com.openclassroom.go4lunch.ui.restaurant;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -37,6 +38,7 @@ import com.openclassroom.go4lunch.models.Restaurant;
 
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -53,7 +55,8 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
     @NonNull
     @Override
     public RestaurantViewModel onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new RestaurantViewModel(LayoutInflater.from(parent.getContext()).inflate(R.layout.restaurant_list_item, parent,
+        return new RestaurantViewModel(LayoutInflater.from(parent.getContext()).inflate(R.layout.restaurant_list_item
+                , parent,
                 false));
     }
 
@@ -80,10 +83,12 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
 
                 float[] distance = new float[1];
                 assert placeLatLng != null;
-                Location.distanceBetween(userLatitude, userLongitude, placeLatLng.latitude, placeLatLng.longitude, distance);
+                Location.distanceBetween(userLatitude, userLongitude, placeLatLng.latitude, placeLatLng.longitude,
+                        distance);
                 float distanceInMeters = distance[0];
                 int finalDistance = (int) distanceInMeters;
 
+                mRestaurantList.get(position).setDistanceToUser(finalDistance);
                 holder.distance.setText(String.format("%sm", finalDistance));
             });
         }
@@ -96,6 +101,7 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
         query.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 int interestedWorkmates = task.getResult().size();
+                mRestaurantList.get(position).setNumOfWorkmates(interestedWorkmates);
                 holder.numOfColleagues.setText(String.format(Locale.ENGLISH, "(%d)", interestedWorkmates));
             } else {
                 holder.numOfColleagues.setText("(0)");
@@ -130,6 +136,30 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
         });
     }
 
+    @SuppressLint("NotifyDataSetChanged")
+    public void sortListByRating() {
+        mRestaurantList.sort((o1, o2) -> Double.compare(o2.getRating(), o1.getRating()));
+        notifyDataSetChanged();
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    public void sortListByAlphabeticalOrder() {
+        mRestaurantList.sort(Comparator.comparing(Restaurant::getName));
+        notifyDataSetChanged();
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    public void sortListByDistanceToUser() {
+        mRestaurantList.sort(Comparator.comparingDouble(Restaurant::getDistanceToUser));
+        notifyDataSetChanged();
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    public void sortListByNumOfWorkmates() {
+        mRestaurantList.sort((o1, o2) -> Double.compare(o2.getNumOfWorkmates(), o1.getNumOfWorkmates()));
+        notifyDataSetChanged();
+    }
+
     @Override
     public int getItemCount() {
         return mRestaurantList.size();
@@ -140,8 +170,8 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
         TextView name, address, openingHours, distance, numOfColleagues;
         ImageView image;
         RatingBar ratingBar;
-         HorizontalScrollView horizontalScrollView;
-         LinearLayout scrollableLinearLayout;
+        HorizontalScrollView horizontalScrollView;
+        LinearLayout scrollableLinearLayout;
 
         public RestaurantViewModel(@NonNull View itemView) {
             super(itemView);

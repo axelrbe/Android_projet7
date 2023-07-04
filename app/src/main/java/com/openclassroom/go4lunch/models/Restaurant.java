@@ -23,12 +23,14 @@ public class Restaurant implements Parcelable {
     @Nullable
     private String address;
     private boolean isOpenNow;
-    private LatLng mLatLng;
+    private LatLng latLng;
+    private int distanceToUser;
+    private int numOfWorkmates;
 
 
     public Restaurant(String idR, String name, @Nullable String phone, Float rating, @Nullable String type,
                       @Nullable String urlPicture, @Nullable String webSite, @Nullable String address,
-                      boolean isOpenNow, LatLng mLatLng) {
+                      boolean isOpenNow, LatLng latLng, int distanceToUser, int numOfWorkmates) {
         this.idR = idR;
         this.name = name;
         this.phone = phone;
@@ -38,7 +40,9 @@ public class Restaurant implements Parcelable {
         this.webSite = webSite;
         this.address = address;
         this.isOpenNow = isOpenNow;
-        this.mLatLng = mLatLng;
+        this.latLng = latLng;
+        this.distanceToUser = distanceToUser;
+        this.numOfWorkmates = numOfWorkmates;
     }
 
     public String getIdR() {
@@ -119,11 +123,27 @@ public class Restaurant implements Parcelable {
     }
 
     public LatLng getLatLng() {
-        return mLatLng;
+        return latLng;
     }
 
     public void setLatLng(LatLng latLng) {
-        mLatLng = latLng;
+        latLng = latLng;
+    }
+
+    public int getDistanceToUser() {
+        return distanceToUser;
+    }
+
+    public void setDistanceToUser(int distanceToUser) {
+        this.distanceToUser = distanceToUser;
+    }
+
+    public int getNumOfWorkmates() {
+        return numOfWorkmates;
+    }
+
+    public void setNumOfWorkmates(int numOfWorkmates) {
+        this.numOfWorkmates = numOfWorkmates;
     }
 
     /* Implémentation de parcelizable */
