@@ -169,7 +169,7 @@ public class RestaurantRepository implements Serializable {
                                         "&photoreference="
                                         + result.getPhotos().get(0).getPhotoReference() + "&key=" + BuildConfig.MAPS_API_KEY;
                                 Restaurant restaurant = new Restaurant(result.getPlaceId(), result.getName(),
-                                        phoneNumber, null,
+                                        phoneNumber, result.getRating().floatValue(),
                                         result.getTypes().get(1), urlPicture,
                                         websiteUrl, result.getVicinity(), isOpenNow, mLatLng, 0, 0);
                                 listOfRestaurant.add(restaurant);
@@ -181,7 +181,6 @@ public class RestaurantRepository implements Serializable {
                                 listOfRestaurant.add(restaurant);
                             }
                             mRestaurantList.postValue(listOfRestaurant);
-                            updateRestaurantRatings();
                         }).addOnFailureListener(e -> Log.d("RestaurantRepository",
                                 "Fail to call place details : " + e.getMessage()));
 
@@ -196,45 +195,5 @@ public class RestaurantRepository implements Serializable {
                 Log.d("RestaurantRepository", "onFailure: " + t.getMessage());
             }
         });
-    }
-
-    @SuppressWarnings("unchecked")
-    private void updateRestaurantRatings() {
-        db.collection("users")
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        Map<String, Integer> restaurantRatings = new HashMap<>();
-                        int totalUsers = task.getResult().size();
-
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            Object likedRestaurantsObj = document.get("likedRestaurants");
-                            if (likedRestaurantsObj instanceof List<?>) {
-                                List<String> likedRestaurants = (List<String>) likedRestaurantsObj;
-                                for (String restaurantId : likedRestaurants) {
-                                    restaurantRatings.put(restaurantId, restaurantRatings.getOrDefault(restaurantId, 0) + 1);
-                                }
-                            }
-                        }
-
-                        updateAverageRatings(restaurantRatings, totalUsers);
-                    } else {
-                        Log.d("RestaurantRepository", "error getting the documents");
-                    }
-                });
-    }
-
-    private void updateAverageRatings(Map<String, Integer> restaurantRatings, int totalUsers) {
-        List<Restaurant> currentRestaurants = mRestaurantList.getValue();
-        if (currentRestaurants != null) {
-            for (Restaurant restaurant : currentRestaurants) {
-                Integer rating = restaurantRatings.get(restaurant.getIdR());
-                if (rating != null) {
-                    double averageRating = (double) rating / totalUsers;
-                    restaurant.setRating((float) averageRating);
-                }
-            }
-            mRestaurantList.setValue(currentRestaurants);
-        }
     }
 }

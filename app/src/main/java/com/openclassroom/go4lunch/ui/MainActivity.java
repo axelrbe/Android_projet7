@@ -27,9 +27,7 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
-    // TODO Faire les like
     // TODO Faire les test
-    // TODO Faire nouveaux workmates
     // TODO Search workmates fragment
 
     private static final int RC_SIGN_IN = 123;
@@ -123,6 +121,7 @@ public class MainActivity extends AppCompatActivity {
                         .setTheme(R.style.LoginTheme)
                         .setAvailableProviders(providers)
                         .setIsSmartLockEnabled(false, true)
+                        .setLogo(R.drawable.app_logo)
                         .build(),
                 RC_SIGN_IN);
     }

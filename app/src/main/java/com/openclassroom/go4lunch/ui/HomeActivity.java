@@ -16,6 +16,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import androidx.appcompat.widget.SearchView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -28,6 +29,7 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
 
 import com.bumptech.glide.Glide;
@@ -41,6 +43,7 @@ import com.google.android.libraries.places.api.model.PlaceTypes;
 import com.google.android.libraries.places.api.model.RectangularBounds;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -88,8 +91,8 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         setSupportActionBar(toolbar);
 
         mDrawerLayout = findViewById(R.id.drawer_layout);
-        NavigationView navigationView = findViewById(R.id.left_nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
+        NavigationView leftNavigationView = findViewById(R.id.left_nav_view);
+        leftNavigationView.setNavigationItemSelectedListener(this);
 
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, mDrawerLayout, toolbar, R.string.open_left_nav,
                 R.string.close_left_nav);
@@ -102,14 +105,27 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         // Autocomplete implementation
         ImageButton searchView = findViewById(R.id.autocomplete_search_view);
         CardView autocompleteContainer = findViewById(R.id.autocomplete_container);
-        searchView.setOnClickListener(v -> {
-            if (autocompleteContainer.getVisibility() == View.VISIBLE) {
-                autocompleteContainer.setVisibility(View.GONE);
-            } else {
-                autocompleteContainer.setVisibility(View.VISIBLE);
-            }
-        });
-        autocompleteImplementation();
+
+        int currentDestinationId = navController.getCurrentDestination().getId();
+        Log.d("HomeActivity", "onCreate: " + currentDestinationId);
+        Log.d("HomeActivity", "onCreate: " + R.id.navigation_map);
+        if (currentDestinationId == R.id.navigation_map || currentDestinationId == R.id.navigation_list) {
+            searchView.setOnClickListener(v -> {
+                if (autocompleteContainer.getVisibility() == View.VISIBLE) {
+                    autocompleteContainer.setVisibility(View.GONE);
+                } else {
+                    autocompleteContainer.setVisibility(View.VISIBLE);
+                }
+            });
+            autocompleteImplementation();
+        }
+    }
+
+    public SearchView getSearchView() {
+        return findViewById(R.id.workmates_searchView);
+    }
+    public ImageButton getSearchViewIcon() {
+        return findViewById(R.id.autocomplete_search_view);
     }
 
     private void autocompleteImplementation() {

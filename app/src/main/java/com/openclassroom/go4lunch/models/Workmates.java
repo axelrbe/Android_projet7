@@ -8,6 +8,9 @@ public class Workmates implements Serializable {
     private Restaurant mRestaurant;
     private boolean isNotificationChecked;
 
+    public Workmates() {
+    }
+
     public Workmates(String id, String name, String urlPicture, String email, Restaurant restaurant, boolean isNotificationChecked) {
         this.id = id;
         this.name = name;

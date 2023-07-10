@@ -255,7 +255,7 @@ public class DetailedRestaurantActivity extends AppCompatActivity implements Ser
                             likeBtn.setCompoundDrawablesWithIntrinsicBounds(null, newDrawable, null, null);
                             likeBtn.setText(R.string.like);
 
-                            userRef.update("likedRestaurants", FieldValue.arrayRemove(restaurantId))
+                            userRef.update("likedRestaurants", FieldValue.arrayUnion(restaurantId))
                                     .addOnSuccessListener(i -> Log.w("DetailedRestaurantActivity", "Successfully added restaurant id to liked restaurants" + i))
                                     .addOnFailureListener(e -> Log.w("DetailedRestaurantActivity", "Error adding restaurant to liked restaurants", e));
                         });

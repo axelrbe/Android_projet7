@@ -73,5 +73,6 @@
     <string name="like">Like</string>
     <string name="password">Mot de passe</string>
     <string name="connexion">Connexion</string>
+    <string name="workmates_search">recherchez un collègue</string>
 
 </resources>

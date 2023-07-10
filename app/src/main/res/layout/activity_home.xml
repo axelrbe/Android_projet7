@@ -26,6 +26,7 @@
                 android:layout_height="match_parent"
                 android:layout_gravity="end"
                 android:src="@drawable/baseline_search_24"
+                android:layout_marginEnd="5dp"
                 android:background="@color/fui_transparent"
                 android:contentDescription="@string/search_restaurant" />
 
@@ -33,10 +34,10 @@
                 app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior"
                 android:id="@+id/autocomplete_container"
                 android:layout_width="match_parent"
+                android:layout_height="46dp"
                 android:visibility="gone"
-                android:layout_height="40dp"
                 android:background="@color/white"
-                app:cardCornerRadius="20dp">
+                app:cardCornerRadius="10dp">
 
                 <fragment
                     android:id="@+id/autocomplete_fragment"
@@ -46,6 +47,14 @@
                     tools:layout="@android:layout/simple_selectable_list_item"/>
 
             </androidx.cardview.widget.CardView>
+
+            <androidx.appcompat.widget.SearchView
+                android:id="@+id/workmates_searchView"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:visibility="gone"
+                android:background="@color/white"
+                android:hint="@string/workmates_search"/>
 
         </androidx.appcompat.widget.Toolbar>
 
