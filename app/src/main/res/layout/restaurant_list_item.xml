@@ -111,7 +111,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:layout_marginTop="12dp"
-            android:numStars="5"
+            android:numStars="3"
             android:progressTint="#FFD700"
             android:text="@string/rating" />
 

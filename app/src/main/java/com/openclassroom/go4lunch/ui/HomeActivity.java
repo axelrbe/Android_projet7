@@ -26,7 +26,6 @@ import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.lifecycle.Observer;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.NavigationUI;
@@ -48,7 +47,6 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.maps.android.SphericalUtil;
 import com.openclassroom.go4lunch.BuildConfig;
 import com.openclassroom.go4lunch.R;
 import com.openclassroom.go4lunch.databinding.ActivityHomeBinding;
@@ -61,7 +59,6 @@ import com.openclassroom.go4lunch.users.UserManager;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -72,7 +69,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     private final UserManager userManager = UserManager.getInstance();
     private View headerLayout;
     private String placeName, placeId;
-    private LatLng userLatLng, placeLatLng;
+    private LatLng placeLatLng, userLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,9 +99,6 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         // Get user data
         updateUIWithUserData();
 
-        // Get the user location
-        getCurrentLocation();
-
         // Autocomplete implementation
         ImageButton searchView = findViewById(R.id.autocomplete_search_view);
         CardView autocompleteContainer = findViewById(R.id.autocomplete_container);
@@ -118,7 +112,17 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         autocompleteImplementation();
     }
 
-    private void getCurrentLocation() {
+    private void autocompleteImplementation() {
+        if (!Places.isInitialized()) {
+            Places.initialize(HomeActivity.this, BuildConfig.MAPS_API_KEY, Locale.FRANCE);
+        }
+        AutocompleteSupportFragment autocompleteSupportFragment =
+                (AutocompleteSupportFragment) getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
+        assert autocompleteSupportFragment != null;
+        autocompleteSupportFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME,
+                Place.Field.LAT_LNG));
+        autocompleteSupportFragment.setTypesFilter(Collections.singletonList(PlaceTypes.RESTAURANT));
+
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
@@ -126,12 +130,12 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         if (location != null) {
-            userLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+            userLocation = new LatLng(location.getLatitude(), location.getLongitude());
         } else {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, new LocationListener() {
                 @Override
                 public void onLocationChanged(Location location) {
-                    userLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+                    userLocation = new LatLng(location.getLatitude(), location.getLongitude());
                     locationManager.removeUpdates(this);
                 }
 
@@ -148,30 +152,15 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 }
             });
         }
-    }
 
-    private void autocompleteImplementation() {
-        if (!Places.isInitialized()) {
-            Places.initialize(HomeActivity.this, BuildConfig.MAPS_API_KEY, Locale.FRANCE);
+        if (userLocation != null) {
+            LatLngBounds bounds = LatLngBounds.builder()
+                    .include(new LatLng(userLocation.latitude + 0.01, userLocation.longitude + 0.01))
+                    .include(new LatLng(userLocation.latitude - 0.01, userLocation.longitude - 0.01))
+                    .build();
+            autocompleteSupportFragment.setLocationRestriction(RectangularBounds.newInstance(bounds));
         }
-        AutocompleteSupportFragment autocompleteSupportFragment =
-                (AutocompleteSupportFragment) getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
-        assert autocompleteSupportFragment != null;
-        autocompleteSupportFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME,
-                Place.Field.LAT_LNG));
-        autocompleteSupportFragment.setTypesFilter(Collections.singletonList(PlaceTypes.RESTAURANT));
 
-        LatLng userLocation = userLatLng;
-        Log.d("HomeActivity", "onPlaceSelected: Name = " + userLocation.latitude + " - " + userLocation.longitude);
-        double radiusMeters = 1500;
-        LatLngBounds bounds = LatLngBounds.builder()
-                .include(SphericalUtil.computeOffset(userLocation, radiusMeters, 0))
-                .include(SphericalUtil.computeOffset(userLocation, radiusMeters, 90))
-                .include(SphericalUtil.computeOffset(userLocation, radiusMeters, 180))
-                .include(SphericalUtil.computeOffset(userLocation, radiusMeters, 270))
-                .build();
-        RectangularBounds locationBias = RectangularBounds.newInstance(bounds);
-        autocompleteSupportFragment.setLocationRestriction(locationBias);
         autocompleteSupportFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onError(@NonNull Status status) {
@@ -207,7 +196,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.left_nav_your_lunch) {
             RestaurantRepository.getInstance().getAllRestaurant().observe(this,
-                    (Observer<List<Restaurant>>) restaurants -> {
+                    restaurants -> {
                         FirebaseFirestore db = FirebaseFirestore.getInstance();
                         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                         assert user != null;

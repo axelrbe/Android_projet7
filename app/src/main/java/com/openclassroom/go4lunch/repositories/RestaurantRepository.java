@@ -15,12 +15,18 @@ import androidx.core.app.ActivityCompat;
 import androidx.lifecycle.MutableLiveData;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.api.net.FetchPlaceRequest;
 import com.google.android.libraries.places.api.net.FetchPlaceResponse;
 import com.google.android.libraries.places.api.net.PlacesClient;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.openclassroom.go4lunch.BuildConfig;
 import com.openclassroom.go4lunch.models.Restaurant;
 import com.openclassroom.go4lunch.models.entities.PlacesResults;
@@ -31,8 +37,10 @@ import com.openclassroom.go4lunch.retrofit.GoogleMapAPI;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -47,6 +55,7 @@ public class RestaurantRepository implements Serializable {
     private String phoneNumber, websiteUrl, userLocation;
     private LatLng mLatLng;
     private boolean isOpenNow;
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     public RestaurantRepository() {
     }
@@ -62,6 +71,42 @@ public class RestaurantRepository implements Serializable {
         return mRestaurantList;
     }
 
+    public void calculateAverageRatings(List<Restaurant> restaurants) {
+        db.collection("workmates")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Map<String, Integer> restaurantsRatings = new HashMap<>();
+                        int totalWorkmates = task.getResult().size();
+
+                        for (DocumentSnapshot document : task.getResult()) {
+                            Object likedRestaurantsObj = document.get("likedRestaurants");
+                            if (likedRestaurantsObj instanceof List<?>) {
+                                List<String> likedRestaurants = (List<String>) likedRestaurantsObj;
+                                for (String restaurantId : likedRestaurants) {
+                                    restaurantsRatings.put(restaurantId, restaurantsRatings.getOrDefault(restaurantId, 0) + 1);
+                                }
+                            }
+                        }
+                        getAverageRatings(restaurants, restaurantsRatings, totalWorkmates);
+                    }
+                }).addOnFailureListener(e -> {
+
+                });
+    }
+
+    public float getAverageRatings(List<Restaurant> restaurants, Map<String, Integer> restaurantsRatings, int totalWorkmates) {
+        double averageRating = 0;
+        for (Restaurant restaurant : restaurants) {
+            Integer rating = restaurantsRatings.get(restaurant.getIdR());
+            if (rating != null) {
+                averageRating = (double) rating / totalWorkmates;
+                return (float) averageRating;
+            }
+        }
+        return (float) averageRating;
+    }
+
     public void updateRestaurant(Context context) {
         if (!Places.isInitialized()) {
             Places.initialize(context, BuildConfig.MAPS_API_KEY, Locale.FRANCE);
@@ -69,6 +114,7 @@ public class RestaurantRepository implements Serializable {
 
         listOfRestaurant = new ArrayList<>();
 
+        // Get the current user location
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
@@ -92,7 +138,6 @@ public class RestaurantRepository implements Serializable {
                 public void onProviderDisabled(String provider) {}
             });
         }
-
 
         PlacesClient mPlacesClient = Places.createClient(context);
         final List<Place.Field> placeFields = Arrays.asList(Place.Field.PHONE_NUMBER, Place.Field.WEBSITE_URI,
@@ -119,12 +164,12 @@ public class RestaurantRepository implements Serializable {
                             mLatLng = place.getLatLng();
                             isOpenNow = Boolean.TRUE.equals(place.isOpen());
 
-                            if (result.getPhotos() != null && result.getRating() != null && websiteUrl != null) {
-                                String urlPicture = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=2000" +
+                            if (result.getPhotos() != null && websiteUrl != null) {
+                                String urlPicture = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=1500" +
                                         "&photoreference="
                                         + result.getPhotos().get(0).getPhotoReference() + "&key=" + BuildConfig.MAPS_API_KEY;
                                 Restaurant restaurant = new Restaurant(result.getPlaceId(), result.getName(),
-                                        phoneNumber, result.getRating().floatValue(),
+                                        phoneNumber, null,
                                         result.getTypes().get(1), urlPicture,
                                         websiteUrl, result.getVicinity(), isOpenNow, mLatLng, 0, 0);
                                 listOfRestaurant.add(restaurant);
@@ -136,6 +181,7 @@ public class RestaurantRepository implements Serializable {
                                 listOfRestaurant.add(restaurant);
                             }
                             mRestaurantList.postValue(listOfRestaurant);
+                            updateRestaurantRatings();
                         }).addOnFailureListener(e -> Log.d("RestaurantRepository",
                                 "Fail to call place details : " + e.getMessage()));
 
@@ -150,5 +196,45 @@ public class RestaurantRepository implements Serializable {
                 Log.d("RestaurantRepository", "onFailure: " + t.getMessage());
             }
         });
+    }
+
+    @SuppressWarnings("unchecked")
+    private void updateRestaurantRatings() {
+        db.collection("users")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Map<String, Integer> restaurantRatings = new HashMap<>();
+                        int totalUsers = task.getResult().size();
+
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            Object likedRestaurantsObj = document.get("likedRestaurants");
+                            if (likedRestaurantsObj instanceof List<?>) {
+                                List<String> likedRestaurants = (List<String>) likedRestaurantsObj;
+                                for (String restaurantId : likedRestaurants) {
+                                    restaurantRatings.put(restaurantId, restaurantRatings.getOrDefault(restaurantId, 0) + 1);
+                                }
+                            }
+                        }
+
+                        updateAverageRatings(restaurantRatings, totalUsers);
+                    } else {
+                        Log.d("RestaurantRepository", "error getting the documents");
+                    }
+                });
+    }
+
+    private void updateAverageRatings(Map<String, Integer> restaurantRatings, int totalUsers) {
+        List<Restaurant> currentRestaurants = mRestaurantList.getValue();
+        if (currentRestaurants != null) {
+            for (Restaurant restaurant : currentRestaurants) {
+                Integer rating = restaurantRatings.get(restaurant.getIdR());
+                if (rating != null) {
+                    double averageRating = (double) rating / totalUsers;
+                    restaurant.setRating((float) averageRating);
+                }
+            }
+            mRestaurantList.setValue(currentRestaurants);
+        }
     }
 }

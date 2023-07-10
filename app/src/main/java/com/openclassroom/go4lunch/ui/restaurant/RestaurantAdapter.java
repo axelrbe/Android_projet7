@@ -119,10 +119,9 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
 
         holder.name.setText(mRestaurantList.get(position).getName());
         holder.address.setText(mRestaurantList.get(position).getAddress());
-        if (mRestaurantList.get(position).getRating() != 0F) {
+        if (mRestaurantList.get(position).getRating() != null) {
+            Log.d("RestaurantAdapter", "onBindViewHolder: " + mRestaurantList.get(position).getRating());
             holder.ratingBar.setRating(mRestaurantList.get(position).getRating());
-        } else {
-            holder.ratingBar.setVisibility(View.GONE);
         }
 
         Glide.with(context)

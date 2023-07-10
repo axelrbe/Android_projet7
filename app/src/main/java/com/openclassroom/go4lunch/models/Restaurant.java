@@ -9,20 +9,20 @@ import com.google.android.gms.maps.model.LatLng;
 
 
 public class Restaurant implements Parcelable {
-    private String idR;
+    private final String idR;
     private String name;
     @Nullable
-    private String phone;
+    private final String phone;
     private Float rating;
     @Nullable
-    private String type;
+    private final String type;
     @Nullable
-    private String urlPicture;
+    private final String urlPicture;
     @Nullable
-    private String webSite;
+    private final String webSite;
     @Nullable
-    private String address;
-    private boolean isOpenNow;
+    private final String address;
+    private final boolean isOpenNow;
     private LatLng latLng;
     private int distanceToUser;
     private int numOfWorkmates;
@@ -49,10 +49,6 @@ public class Restaurant implements Parcelable {
         return idR;
     }
 
-    public void setIdR(String idR) {
-        this.idR = idR;
-    }
-
     public String getName() {
         return name;
     }
@@ -64,10 +60,6 @@ public class Restaurant implements Parcelable {
     @Nullable
     public String getPhone() {
         return phone;
-    }
-
-    public void setPhone(@Nullable String phone) {
-        this.phone = phone;
     }
 
     public Float getRating() {
@@ -83,17 +75,9 @@ public class Restaurant implements Parcelable {
         return type;
     }
 
-    public void setType(@Nullable String type) {
-        this.type = type;
-    }
-
     @Nullable
     public String getUrlPicture() {
         return urlPicture;
-    }
-
-    public void setUrlPicture(@Nullable String urlPicture) {
-        this.urlPicture = urlPicture;
     }
 
     @Nullable
@@ -101,33 +85,19 @@ public class Restaurant implements Parcelable {
         return webSite;
     }
 
-    public void setWebSite(@Nullable String webSite) {
-        this.webSite = webSite;
-    }
-
     @Nullable
     public String getAddress() {
         return address;
     }
 
-    public void setAddress(@Nullable String address) {
-        this.address = address;
-    }
 
     public boolean isOpenNow() {
         return isOpenNow;
     }
 
-    public void setOpenNow(boolean openNow) {
-        isOpenNow = openNow;
-    }
 
     public LatLng getLatLng() {
         return latLng;
-    }
-
-    public void setLatLng(LatLng latLng) {
-        latLng = latLng;
     }
 
     public int getDistanceToUser() {
@@ -146,7 +116,7 @@ public class Restaurant implements Parcelable {
         this.numOfWorkmates = numOfWorkmates;
     }
 
-    /* Implémentation de parcelizable */
+    /* Implementation of parcelable */
     public static final Parcelable.Creator<Restaurant> CREATOR = new Parcelable.Creator<Restaurant>() {
         public Restaurant createFromParcel(Parcel in) {
             return new Restaurant(in);

@@ -21,9 +21,6 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField 'String', 'MAPS_API_KEY', "\"${localProperties['API_KEY']}\""
-        resValue "string", "facebook_application_id", "\"${localProperties['facebook_application_id']}\""
-        resValue "string", "fb_login_protocol_scheme", "\"${localProperties['fb_login_protocol_scheme']}\""
-        resValue "string", "facebook_client_token", "\"${localProperties['facebook_client_token']}\""
     }
 
     buildFeatures {
@@ -76,16 +73,8 @@ dependencies {
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.google.firebase:firebase-messaging'
     implementation 'com.google.firebase:firebase-config:21.4.0'
-
-    // FIREBASE UI
-    implementation 'com.firebaseui:firebase-ui-auth:7.2.0'
-
-    // Firebase firestore
-    implementation platform('com.google.firebase:firebase-bom:32.1.0')
+    implementation 'com.firebaseui:firebase-ui-auth:8.0.2'
     implementation 'com.google.firebase:firebase-firestore'
-
-    // Facebook
-    implementation 'com.facebook.android:facebook-android-sdk:[8,9)'
 
     // Glide
     implementation 'com.github.bumptech.glide:glide:4.15.1'
