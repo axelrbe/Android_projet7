@@ -13,7 +13,7 @@ import com.firebase.ui.auth.ErrorCodes;
 import com.firebase.ui.auth.IdpResponse;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.openclassroom.go4lunch.R;
 import com.openclassroom.go4lunch.databinding.ActivityHomeBinding;
@@ -26,6 +26,11 @@ import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
+
+    // TODO Faire les like
+    // TODO Faire les test
+    // TODO Faire nouveaux workmates
+    // TODO Search workmates fragment
 
     private static final int RC_SIGN_IN = 123;
     ActivityHomeBinding binding;
@@ -48,14 +53,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @SuppressLint("RestrictedApi")
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        this.handleResponseAfterSignIn(requestCode, resultCode, data);
-    }
-
-    @SuppressLint("RestrictedApi")
-    private void handleResponseAfterSignIn(int requestCode, int resultCode, Intent data) {
 
         IdpResponse response = IdpResponse.fromResultIntent(data);
         if (requestCode == RC_SIGN_IN) {
@@ -66,20 +67,29 @@ public class MainActivity extends AppCompatActivity {
                 currentUser = FirebaseAuth.getInstance().getCurrentUser();
                 assert currentUser != null;
                 userId = currentUser.getUid();
-                DocumentReference reference = db.collection("workmates").document(userId);
 
-                Map<String, Object> user = new HashMap<>();
-                assert response != null;
-                user.put("name", response.getUser().getName());
-                user.put("email", response.getUser().getEmail());
-                user.put("profilePicture", response.getUser().getPhotoUri());
-                user.put("providerId", response.getUser().getProviderId());
-                user.put("idSelectedRestaurant", "");
+                db.collection("workmates").document(userId).get()
+                        .addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                DocumentSnapshot document = task.getResult();
+                                if (document != null && !document.exists()) {
+                                    Map<String, Object> user = new HashMap<>();
+                                    assert response != null;
+                                    user.put("name", response.getUser().getName());
+                                    user.put("email", response.getUser().getEmail());
+                                    user.put("profilePicture", response.getUser().getPhotoUri());
+                                    user.put("providerId", response.getUser().getProviderId());
+                                    user.put("idSelectedRestaurant", "");
 
-                boolean isNew = response.isNewUser();
-                if (isNew) {
-                    reference.set(user).addOnSuccessListener(unused -> Log.d("usersInfos", "onSuccess: user profile is created for " + userId));
-                }
+                                    boolean isNew = response.isNewUser();
+                                    if (isNew) {
+                                        db.collection("workmates").document(userId).set(user)
+                                                .addOnSuccessListener(unused -> Log.d("usersInfos",
+                                                        "onSuccess: user profile is created for " + userId));
+                                    }
+                                }
+                            }
+                        });
 
                 Intent intent = new Intent(getApplicationContext(), HomeActivity.class);
                 startActivity(intent);
@@ -103,7 +113,7 @@ public class MainActivity extends AppCompatActivity {
         List<AuthUI.IdpConfig> providers =
                 Arrays.asList(
                         new AuthUI.IdpConfig.GoogleBuilder().build(),
-                        new AuthUI.IdpConfig.FacebookBuilder().build()
+                        new AuthUI.IdpConfig.EmailBuilder().build()
                 );
 
         // Launch the activity
@@ -113,7 +123,6 @@ public class MainActivity extends AppCompatActivity {
                         .setTheme(R.style.LoginTheme)
                         .setAvailableProviders(providers)
                         .setIsSmartLockEnabled(false, true)
-                        .setLogo(R.drawable.app_logo)
                         .build(),
                 RC_SIGN_IN);
     }
