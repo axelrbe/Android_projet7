@@ -1,10 +1,13 @@
 package com.openclassroom.go4lunch.ui;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -14,22 +17,23 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AutoCompleteTextView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import androidx.appcompat.widget.SearchView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
-import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
 
 import com.bumptech.glide.Glide;
@@ -43,17 +47,19 @@ import com.google.android.libraries.places.api.model.PlaceTypes;
 import com.google.android.libraries.places.api.model.RectangularBounds;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.openclassroom.go4lunch.BuildConfig;
 import com.openclassroom.go4lunch.R;
 import com.openclassroom.go4lunch.databinding.ActivityHomeBinding;
 import com.openclassroom.go4lunch.models.Restaurant;
+import com.openclassroom.go4lunch.models.Workmates;
 import com.openclassroom.go4lunch.repositories.RestaurantRepository;
 import com.openclassroom.go4lunch.ui.restaurant.DetailedRestaurantActivity;
 import com.openclassroom.go4lunch.ui.restaurant.RestaurantAdapter;
@@ -71,8 +77,12 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     private DrawerLayout mDrawerLayout;
     private final UserManager userManager = UserManager.getInstance();
     private View headerLayout;
-    private String placeName, placeId;
-    private LatLng placeLatLng, userLocation;
+    private String placeId;
+    private LatLng userLocation;
+    private CardView autocompleteContainer;
+    private NavController navController;
+    private ImageButton searchViewBtn;
+    private SearchView searchView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,7 +93,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
         RestaurantRepository.getInstance().updateRestaurant(this);
 
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupWithNavController(binding.navView, navController);
 
         // Left nav menu drawer
@@ -103,14 +113,17 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         updateUIWithUserData();
 
         // Autocomplete implementation
-        ImageButton searchView = findViewById(R.id.autocomplete_search_view);
-        CardView autocompleteContainer = findViewById(R.id.autocomplete_container);
+        setUpAutocomplete();
+    }
 
-        int currentDestinationId = navController.getCurrentDestination().getId();
-        Log.d("HomeActivity", "onCreate: " + currentDestinationId);
-        Log.d("HomeActivity", "onCreate: " + R.id.navigation_map);
+    private void setUpAutocomplete() {
+         searchViewBtn = findViewById(R.id.autocomplete_search_view);
+        autocompleteContainer = findViewById(R.id.autocomplete_container);
+         searchView = findViewById(R.id.workmates_searchView);
+
+        int currentDestinationId = Objects.requireNonNull(navController.getCurrentDestination()).getId();
         if (currentDestinationId == R.id.navigation_map || currentDestinationId == R.id.navigation_list) {
-            searchView.setOnClickListener(v -> {
+            searchViewBtn.setOnClickListener(v -> {
                 if (autocompleteContainer.getVisibility() == View.VISIBLE) {
                     autocompleteContainer.setVisibility(View.GONE);
                 } else {
@@ -122,10 +135,15 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     }
 
     public SearchView getSearchView() {
-        return findViewById(R.id.workmates_searchView);
+        return searchView;
     }
-    public ImageButton getSearchViewIcon() {
-        return findViewById(R.id.autocomplete_search_view);
+
+    public ImageButton getSearchViewBtn() {
+        return searchViewBtn;
+    }
+
+    public CardView getAutocompleteContainer() {
+        return autocompleteContainer;
     }
 
     private void autocompleteImplementation() {
@@ -154,18 +172,6 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                     userLocation = new LatLng(location.getLatitude(), location.getLongitude());
                     locationManager.removeUpdates(this);
                 }
-
-                @Override
-                public void onStatusChanged(String provider, int status, Bundle extras) {
-                }
-
-                @Override
-                public void onProviderEnabled(String provider) {
-                }
-
-                @Override
-                public void onProviderDisabled(String provider) {
-                }
             });
         }
 
@@ -185,13 +191,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
             @Override
             public void onPlaceSelected(@NonNull Place place) {
-                placeName = place.getName();
-                placeLatLng = place.getLatLng();
                 placeId = place.getId();
-                Log.d("HomeActivity", "onPlaceSelected: Name = " + placeName);
-                Log.d("HomeActivity", "onPlaceSelected: Id = " + placeId);
-                Log.d("HomeActivity",
-                        "onPlaceSelected: LatLng = " + placeLatLng.latitude + " - " + placeLatLng.longitude);
 
                 RestaurantRepository.getInstance().getAllRestaurant().observe(HomeActivity.this, restaurants -> {
                     for (Restaurant restaurant : restaurants) {
@@ -280,12 +280,10 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void setTextUserData(FirebaseUser user) {
-        //Get email & username from User
         String email = TextUtils.isEmpty(user.getEmail()) ? getString(R.string.info_no_email_found) : user.getEmail();
         String username = TextUtils.isEmpty(user.getDisplayName()) ? getString(R.string.info_no_username_found) :
                 user.getDisplayName();
 
-        //Update views with data
         TextView userName = headerLayout.findViewById(R.id.user_name);
         TextView userEmail = headerLayout.findViewById(R.id.user_email);
         userName.setText(username);

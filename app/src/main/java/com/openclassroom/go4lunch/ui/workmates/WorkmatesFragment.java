@@ -3,7 +3,6 @@ package com.openclassroom.go4lunch.ui.workmates;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -11,13 +10,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AutoCompleteTextView;
 import android.widget.ImageButton;
-import android.widget.ImageView;
-
-import androidx.appcompat.widget.SearchView ;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.SearchView;
 import androidx.cardview.widget.CardView;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -45,51 +41,42 @@ public class WorkmatesFragment extends Fragment {
     private Restaurant selectedRestaurant;
     private FirebaseUser currentUser;
     private String userId;
-    private SearchView mSearchView;
+    private SearchView searchView;
+    private CardView autocompleteContainer;
     private ImageButton searchViewBtn;
+    Context context;
 
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_workmates, container, false);
-
-        if (getActivity() instanceof HomeActivity) {
-            searchViewBtn = ((HomeActivity) getActivity()).getSearchViewIcon();
-            mSearchView = ((HomeActivity) getActivity()).getSearchView();
-        }
-
-        AutoCompleteTextView searchText = mSearchView.findViewById(androidx.appcompat.R.id.search_src_text);
-        searchText.setTextColor(ContextCompat.getColor(requireContext(), R.color.orange)); // Replace with your desired text color
-        searchText.setHintTextColor(Color.GRAY);
-        ImageView searchIcon = mSearchView.findViewById(androidx.appcompat.R.id.search_mag_icon);
-        searchIcon.setColorFilter(ContextCompat.getColor(requireContext(), R.color.orange), PorterDuff.Mode.SRC_IN);
-
-        searchViewBtn.setOnClickListener(v -> {
-            if (mSearchView.getVisibility() == View.VISIBLE) {
-                mSearchView.setVisibility(View.GONE);
-            } else {
-                mSearchView.setVisibility(View.VISIBLE);
-            }
-        });
-        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                return false;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                searchWorkmates(newText);
-                return true;
-            }
-        });
-        mSearchView.setOnCloseListener(() -> {
-            displayListOfWorkmates();
-            return false;
-        });
+        context = container.getContext();
 
         mWorkmatesRecyclerView = root.findViewById(R.id.workmates_recycler_view);
 
+        if (getActivity() instanceof HomeActivity) {
+            searchView = ((HomeActivity) getActivity()).getSearchView();
+            autocompleteContainer = ((HomeActivity) getActivity()).getAutocompleteContainer();
+            searchViewBtn = ((HomeActivity) getActivity()).getSearchViewBtn();
+        }
+
+        autocompleteContainer.setVisibility(View.GONE);
+
+        searchViewBtn.setOnClickListener(v -> {
+            if (searchView.getVisibility() == View.VISIBLE) {
+                searchView.setVisibility(View.GONE);
+            } else {
+                searchView.setVisibility(View.VISIBLE);
+                searchView.requestFocus();
+                searchView.setIconified(false);
+                searchView.setOnCloseListener(() -> {
+                    searchView.setVisibility(View.GONE);
+                    return true;
+                });
+            }
+        });
+
+        setUpWorkmatesSearch();
         displayListOfWorkmates();
 
         return root;
@@ -137,6 +124,30 @@ public class WorkmatesFragment extends Fragment {
         });
     }
 
+    private void setUpWorkmatesSearch() {
+        AutoCompleteTextView searchText = searchView.findViewById(androidx.appcompat.R.id.search_src_text);
+        searchText.setTextColor(Color.WHITE);
+        searchText.setHintTextColor(Color.WHITE);
+        searchText.setTextSize(20);
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                searchWorkmates(newText);
+                return true;
+            }
+        });
+
+        searchView.setOnCloseListener(() -> {
+            displayListOfWorkmates();
+            return false;
+        });
+    }
+
     @SuppressLint("NotifyDataSetChanged")
     private void searchWorkmates(String query) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -158,4 +169,5 @@ public class WorkmatesFragment extends Fragment {
             }
         });
     }
+
 }

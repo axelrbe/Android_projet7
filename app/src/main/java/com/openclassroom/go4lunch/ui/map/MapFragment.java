@@ -1,9 +1,7 @@
 package com.openclassroom.go4lunch.ui.map;
 
 import android.Manifest;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.LocationListener;
@@ -55,9 +53,6 @@ public class MapFragment extends Fragment implements Serializable {
 
         mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
 
-        mLocationManager = (LocationManager) requireActivity().getSystemService(Context.LOCATION_SERVICE);
-        moveTheCameraToCurrentLocation();
-
         RestaurantRepository.getInstance().getAllRestaurant().observe(requireActivity(), restaurants -> {
             for (Restaurant restaurant : restaurants) {
                 mRestaurantList.add(restaurant);
@@ -68,7 +63,6 @@ public class MapFragment extends Fragment implements Serializable {
                 restaurantsRef.whereEqualTo("idSelectedRestaurant", restaurant.getIdR())
                         .get()
                         .addOnSuccessListener(querySnapshot -> {
-                            // Iterate over the retrieved documents and change the color of the corresponding markers
                             for (QueryDocumentSnapshot ignored : querySnapshot) {
                                 mGoogleMap.addMarker(new MarkerOptions()
                                         .position(restaurant.getLatLng())
@@ -92,21 +86,24 @@ public class MapFragment extends Fragment implements Serializable {
             }
 
             mGoogleMap.setOnMarkerClickListener(marker -> {
-                AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-                builder.setTitle(marker.getTitle())
-                        .setIcon(R.drawable.baseline_restaurant_24)
-                        .setMessage(marker.getSnippet() + "\n\n" + R.string.open_page_detailed)
-                        .setPositiveButton(R.string.oui, (DialogInterface.OnClickListener) (dialog, which) -> {
-                            Restaurant selectedRestaurant = getRestaurantByMarker(marker);
-                            Intent intent = new Intent(requireContext(), DetailedRestaurantActivity.class);
-                            intent.putExtra(RestaurantAdapter.RESTAURANT_INFO, selectedRestaurant);
-                            startActivity(intent);
-                        })
-                        .setNegativeButton(R.string.non, null)
-                        .show();
+                Restaurant selectedRestaurant = getRestaurantByMarker(marker);
+                assert selectedRestaurant != null;
+                marker.setTitle(selectedRestaurant.getName());
+                marker.setSnippet(selectedRestaurant.getAddress());
+                marker.showInfoWindow();
                 return true;
             });
+
+            mGoogleMap.setOnInfoWindowClickListener(marker -> {
+                Restaurant selectedRestaurant = getRestaurantByMarker(marker);
+
+                Intent intent = new Intent(requireContext(), DetailedRestaurantActivity.class);
+                intent.putExtra(RestaurantAdapter.RESTAURANT_INFO, selectedRestaurant);
+                startActivity(intent);
+            });
         });
+
+        moveTheCameraToCurrentLocation();
         return root;
     }
 
@@ -122,6 +119,7 @@ public class MapFragment extends Fragment implements Serializable {
     }
 
     private void moveTheCameraToCurrentLocation() {
+        mLocationManager = (LocationManager) requireActivity().getSystemService(Context.LOCATION_SERVICE);
         mLocationListener = location -> {
             LatLng currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
             mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15));

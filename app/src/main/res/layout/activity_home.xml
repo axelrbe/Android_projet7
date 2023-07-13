@@ -52,9 +52,7 @@
                 android:id="@+id/workmates_searchView"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
-                android:visibility="gone"
-                android:background="@color/white"
-                android:hint="@string/workmates_search"/>
+                android:visibility="gone"/>
 
         </androidx.appcompat.widget.Toolbar>
 

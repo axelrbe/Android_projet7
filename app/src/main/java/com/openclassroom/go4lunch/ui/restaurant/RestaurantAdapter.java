@@ -11,7 +11,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RatingBar;
@@ -169,7 +168,6 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
         TextView name, address, openingHours, distance, numOfColleagues;
         ImageView image;
         RatingBar ratingBar;
-        HorizontalScrollView horizontalScrollView;
         LinearLayout scrollableLinearLayout;
 
         public RestaurantViewModel(@NonNull View itemView) {
@@ -182,7 +180,6 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
             numOfColleagues = itemView.findViewById(R.id.restaurant_numOfColleagues);
             ratingBar = itemView.findViewById(R.id.restaurant_rating);
             image = itemView.findViewById(R.id.imageView);
-            horizontalScrollView = itemView.findViewById(R.id.horizontal_scroll_view);
             scrollableLinearLayout = itemView.findViewById(R.id.scrollable_linear_layout);
         }
     }
