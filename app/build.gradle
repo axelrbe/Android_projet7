@@ -67,12 +67,17 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    androidTestImplementation 'androidx.test:runner:1.5.2'
+    androidTestImplementation 'androidx.test:rules:1.5.0'
+    androidTestImplementation ('androidx.test.espresso:espresso-contrib:3.5.1') {
+        exclude group: 'com.google.protobuf', module: 'protobuf-lite'
+    }
 
     // Firebase
     implementation platform('com.google.firebase:firebase-bom:32.0.0')
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.google.firebase:firebase-messaging'
-    implementation 'com.google.firebase:firebase-config:21.4.0'
+    implementation 'com.google.firebase:firebase-config:21.4.1'
     implementation 'com.firebaseui:firebase-ui-auth:8.0.2'
     implementation 'com.google.firebase:firebase-firestore'
 
@@ -83,7 +88,7 @@ dependencies {
     // Google maps and places
     implementation 'com.google.android.gms:play-services-maps:18.1.0'
     implementation 'com.google.android.gms:play-services-places:17.0.0'
-    implementation 'com.google.android.libraries.places:places:3.1.0'
+    implementation 'com.google.android.libraries.places:places:3.2.0'
     implementation 'com.squareup.okhttp3:logging-interceptor:3.4.1'
     implementation 'com.google.maps.android:android-maps-utils:0.4'
 

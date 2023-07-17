@@ -30,6 +30,7 @@ import com.openclassroom.go4lunch.repositories.RestaurantRepository;
 import com.openclassroom.go4lunch.ui.HomeActivity;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
@@ -101,6 +102,7 @@ public class WorkmatesFragment extends Fragment {
                                             selectedRestaurant = restaurants.get(i);
                                         }
                                     }
+
                                     Workmates workmate = new Workmates(document.getId(),
                                             document.getString("name"),
                                             document.getString("profilePicture"),
@@ -108,6 +110,18 @@ public class WorkmatesFragment extends Fragment {
                                             selectedRestaurant,
                                             false);
                                     mWorkmatesList.add(workmate);
+
+                                    Comparator<Workmates> workmatesComparator = (o1, o2) -> {
+                                        if (o1.getRestaurant() != null && o2.getRestaurant() == null) {
+                                            return -1;
+                                        } else if (o1.getRestaurant() == null && o2.getRestaurant() != null) {
+                                            return 1;
+                                        } else {
+                                            return 0;
+                                        }
+                                    };
+
+                                    mWorkmatesList.sort(workmatesComparator);
 
                                     mWorkmatesAdapter = new WorkmatesAdapter(getActivity(), mWorkmatesList);
                                     mWorkmatesRecyclerView.setAdapter(mWorkmatesAdapter);

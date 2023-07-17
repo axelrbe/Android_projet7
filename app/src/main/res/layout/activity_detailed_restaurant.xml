@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.restaurant.DetailedRestaurantActivity">
+    tools:context=".ui.restaurant.DetailedRestaurantActivity"
+    android:id="@+id/detailed_page_activity">
 
 
     <ImageView

@@ -42,9 +42,8 @@ public class WorkmatesAdapter extends RecyclerView.Adapter<WorkmatesAdapter.Work
     public void onBindViewHolder(@NonNull WorkmatesViewModel holder, int position) {
         String notDecided = "hasn't decided yet";
         if (mWorkmatesList.get(position).getRestaurant() != null) {
-            holder.workmatesInfos.setText(String.format("%s is eating %s (%s)",
+            holder.workmatesInfos.setText(String.format("%s is eating at %s",
                     mWorkmatesList.get(position).getName(),
-                    mWorkmatesList.get(position).getRestaurant().getType(),
                     mWorkmatesList.get(position).getRestaurant().getName()));
         } else {
             holder.workmatesInfos.setTextColor(Color.GRAY);

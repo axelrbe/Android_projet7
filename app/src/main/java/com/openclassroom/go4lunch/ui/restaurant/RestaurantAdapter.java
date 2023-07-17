@@ -118,10 +118,13 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
 
         holder.name.setText(mRestaurantList.get(position).getName());
         holder.address.setText(mRestaurantList.get(position).getAddress());
-        if (mRestaurantList.get(position).getRating() != null) {
-            Log.d("RestaurantAdapter", "onBindViewHolder: " + mRestaurantList.get(position).getRating());
+        Log.d("RestaurantAdapter", "onBindViewHolder: " + mRestaurantList.get(position).getRating());
+        if (Double.isNaN(mRestaurantList.get(position).getRating())) {
+            holder.ratingBar.setRating(0);
+        } else {
             holder.ratingBar.setRating(mRestaurantList.get(position).getRating());
         }
+
 
         Glide.with(context)
                 .load(mRestaurantList.get(position).getUrlPicture())
@@ -136,7 +139,24 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
 
     @SuppressLint("NotifyDataSetChanged")
     public void sortListByRating() {
-        mRestaurantList.sort((o1, o2) -> Double.compare(o2.getRating(), o1.getRating()));
+        Comparator<Restaurant> ratingComparator = (o1, o2) -> {
+            Double rating1 = Double.valueOf(o1.getRating());
+            Double rating2 = Double.valueOf(o2.getRating());
+
+            // Check if either rating is NaN
+            if (rating1.isNaN() && rating2.isNaN()) {
+                return 0; // Both ratings are NaN, so they are considered equal
+            } else if (rating1.isNaN()) {
+                return 1; // o1 has NaN rating, so it should be considered greater
+            } else if (rating2.isNaN()) {
+                return -1; // o2 has NaN rating, so it should be considered greater
+            }
+
+            // Compare ratings in descending order
+            return Double.compare(rating2, rating1);
+        };
+
+        mRestaurantList.sort(ratingComparator);
         notifyDataSetChanged();
     }
 

@@ -45,11 +45,9 @@ public class RestaurantRepository implements Serializable {
 
     private static volatile RestaurantRepository instance;
     private final MutableLiveData<List<Restaurant>> mRestaurantList = new MutableLiveData<>();
-    private List<Restaurant> listOfRestaurant;
-    private Place place;
-    private String phoneNumber, websiteUrl, userLocation;
-    private LatLng mLatLng;
-    private boolean isOpenNow;
+    private final List<Restaurant> listOfRestaurant = new ArrayList<>();
+    private String userLocation;
+
 
     public RestaurantRepository() {
     }
@@ -69,8 +67,6 @@ public class RestaurantRepository implements Serializable {
         if (!Places.isInitialized()) {
             Places.initialize(context, BuildConfig.MAPS_API_KEY, Locale.FRANCE);
         }
-
-        listOfRestaurant = new ArrayList<>();
 
         // Get the current user location
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
@@ -108,64 +104,52 @@ public class RestaurantRepository implements Serializable {
                     List<Result> results = response.body().getResults();
 
                     for (Result result : results) {
-                        String placeId = result.getPlaceId();
-                        FetchPlaceRequest request = FetchPlaceRequest.newInstance(placeId, placeFields);
+                        FirebaseFirestore db = FirebaseFirestore.getInstance();
+                        CollectionReference workmatesRef = db.collection("workmates");
+                        Query query = workmatesRef.whereArrayContains("likedRestaurants", result.getPlaceId());
 
-                        Task<FetchPlaceResponse> task = mPlacesClient.fetchPlace(request);
-                        task.addOnSuccessListener(fetchPlaceResponse -> {
-                            place = fetchPlaceResponse.getPlace();
-                            websiteUrl = String.valueOf(place.getWebsiteUri());
-                            phoneNumber = place.getPhoneNumber();
-                            mLatLng = place.getLatLng();
-                            isOpenNow = Boolean.TRUE.equals(place.isOpen());
-
-                            if (result.getPhotos() != null && websiteUrl != null) {
-                                FirebaseFirestore db = FirebaseFirestore.getInstance();
-                                CollectionReference workmatesRef = db.collection("workmates");
-                                Query query = workmatesRef.whereArrayContains("likedRestaurants", result.getPlaceId());
-
-                                query.get().addOnCompleteListener(task1 -> {
-                                    if (task1.isSuccessful()) {
-                                        List<DocumentSnapshot> workmates = task1.getResult().getDocuments();
-                                        int totalLikes = 0;
-                                        for (DocumentSnapshot workmate : workmates) {
-                                            List<String> likedRestaurants = new ArrayList<>();
-                                            Object likedRestaurantsObj = workmate.get("likedRestaurants");
-                                            if (likedRestaurantsObj instanceof List<?>) {
-                                                for (Object item : (List<?>) likedRestaurantsObj) {
-                                                    if (item instanceof String) {
-                                                        likedRestaurants.add((String) item);
-                                                    }
-                                                }
+                        query.get().addOnCompleteListener(task1 -> {
+                            if (task1.isSuccessful()) {
+                                List<DocumentSnapshot> workmates = task1.getResult().getDocuments();
+                                int totalLikes = 0;
+                                for (DocumentSnapshot workmate : workmates) {
+                                    List<String> likedRestaurants = new ArrayList<>();
+                                    Object likedRestaurantsObj = workmate.get("likedRestaurants");
+                                    if (likedRestaurantsObj instanceof List<?>) {
+                                        for (Object item : (List<?>) likedRestaurantsObj) {
+                                            if (item instanceof String) {
+                                                likedRestaurants.add((String) item);
                                             }
-                                            totalLikes += likedRestaurants.size();
                                         }
-                                        float averageLikes = (float) totalLikes / workmates.size();
+                                    }
+                                    totalLikes += likedRestaurants.size();
+                                }
+                                float averageLikes = (float) totalLikes / workmates.size();
 
-                                        String urlPicture = "https://maps.googleapis" +
-                                                ".com/maps/api/place/photo?maxwidth=1500" +
-                                                "&photoreference="
-                                                + result.getPhotos().get(0).getPhotoReference() + "&key=" + BuildConfig.MAPS_API_KEY;
-                                        Restaurant restaurant = new Restaurant(result.getPlaceId(), result.getName(),
-                                                phoneNumber, averageLikes,
-                                                result.getTypes().get(1), urlPicture,
-                                                websiteUrl, result.getVicinity(), isOpenNow, mLatLng, 0, 0);
+                                String placeId = result.getPlaceId();
+                                FetchPlaceRequest request = FetchPlaceRequest.newInstance(placeId, placeFields);
+
+                                Task<FetchPlaceResponse> task = mPlacesClient.fetchPlace(request);
+                                task.addOnSuccessListener(fetchPlaceResponse -> {
+                                    Place place = fetchPlaceResponse.getPlace();
+                                    String websiteUrl = String.valueOf(place.getWebsiteUri());
+                                    String phoneNumber = place.getPhoneNumber();
+                                    LatLng mLatLng = place.getLatLng();
+                                    boolean isOpenNow = Boolean.TRUE.equals(place.isOpen());
+
+                                    if (result.getPhotos() != null) {
+                                        String urlPicture = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=1500&photoreference=" + result.getPhotos().get(0).getPhotoReference() + "&key=" + BuildConfig.MAPS_API_KEY;
+                                        Restaurant restaurant = new Restaurant(result.getPlaceId(), result.getName(), phoneNumber, averageLikes, result.getTypes().get(1), urlPicture, websiteUrl, result.getVicinity(), isOpenNow, mLatLng, 0, 0);
+                                        listOfRestaurant.add(restaurant);
+                                    } else {
+                                        Restaurant restaurant = new Restaurant(result.getPlaceId(), result.getName(), phoneNumber, averageLikes, result.getTypes().get(1), "https://images.pexels.com/photos/914388/pexels-photo-914388.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2", websiteUrl, result.getVicinity(), isOpenNow, mLatLng, 0, 0);
                                         listOfRestaurant.add(restaurant);
                                     }
-                                });
-                            } else {
-                                Restaurant restaurant = new Restaurant(result.getPlaceId(), result.getName(),
-                                        phoneNumber, -1F,
-                                        result.getTypes().get(1), "https://images.pexels" +
-                                        ".com/photos/914388/pexels-photo-914388" +
-                                        ".jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-                                        websiteUrl, result.getVicinity(), isOpenNow, mLatLng, 0, 0);
-                                listOfRestaurant.add(restaurant);
-                            }
-                            mRestaurantList.postValue(listOfRestaurant);
-                        }).addOnFailureListener(e -> Log.d("RestaurantRepository",
-                                "Fail to call place details : " + e.getMessage()));
 
+                                    mRestaurantList.postValue(listOfRestaurant);
+                                }).addOnFailureListener(e -> Log.d("RestaurantRepository", "Fail to call place details : " + e.getMessage()));
+                            }
+                        });
                     }
                 } else {
                     Log.d("RestaurantRepository", "Failed");

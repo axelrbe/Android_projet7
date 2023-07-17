@@ -25,7 +25,6 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.openclassroom.go4lunch.R;
 import com.openclassroom.go4lunch.models.Restaurant;
 import com.openclassroom.go4lunch.repositories.RestaurantRepository;
@@ -43,7 +42,7 @@ public class MapFragment extends Fragment implements Serializable {
     private LocationManager mLocationManager;
     private LocationListener mLocationListener;
     List<Restaurant> mRestaurantList = new ArrayList<>();
-    private MarkerOptions mMarkerOptions;
+
     public MapFragment() {
     }
 
@@ -53,57 +52,7 @@ public class MapFragment extends Fragment implements Serializable {
 
         mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
 
-        RestaurantRepository.getInstance().getAllRestaurant().observe(requireActivity(), restaurants -> {
-            for (Restaurant restaurant : restaurants) {
-                mRestaurantList.add(restaurant);
-
-                FirebaseFirestore firebaseFirestore = FirebaseFirestore.getInstance();
-                CollectionReference restaurantsRef = firebaseFirestore.collection("workmates");
-
-                restaurantsRef.whereEqualTo("idSelectedRestaurant", restaurant.getIdR())
-                        .get()
-                        .addOnSuccessListener(querySnapshot -> {
-                            for (QueryDocumentSnapshot ignored : querySnapshot) {
-                                mGoogleMap.addMarker(new MarkerOptions()
-                                        .position(restaurant.getLatLng())
-                                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
-                                        .title(restaurant.getName())
-                                        .snippet(restaurant.getAddress())
-                                        .anchor(0.5f, 0.5f)
-                                        .flat(true));
-                            }
-                        })
-                        .addOnFailureListener(e -> Log.e("MapFragment", "Error getting selected restaurants", e));
-
-                mMarkerOptions = new MarkerOptions()
-                        .position(restaurant.getLatLng())
-                        .title(restaurant.getName())
-                        .snippet(restaurant.getAddress())
-                        .anchor(0.5f, 0.5f)
-                        .flat(true);
-
-                mGoogleMap.addMarker(mMarkerOptions);
-            }
-
-            mGoogleMap.setOnMarkerClickListener(marker -> {
-                Restaurant selectedRestaurant = getRestaurantByMarker(marker);
-                assert selectedRestaurant != null;
-                marker.setTitle(selectedRestaurant.getName());
-                marker.setSnippet(selectedRestaurant.getAddress());
-                marker.showInfoWindow();
-                return true;
-            });
-
-            mGoogleMap.setOnInfoWindowClickListener(marker -> {
-                Restaurant selectedRestaurant = getRestaurantByMarker(marker);
-
-                Intent intent = new Intent(requireContext(), DetailedRestaurantActivity.class);
-                intent.putExtra(RestaurantAdapter.RESTAURANT_INFO, selectedRestaurant);
-                startActivity(intent);
-            });
-        });
-
-        moveTheCameraToCurrentLocation();
+        setUpGoogleMap();
         return root;
     }
 
@@ -118,7 +67,7 @@ public class MapFragment extends Fragment implements Serializable {
         return null;
     }
 
-    private void moveTheCameraToCurrentLocation() {
+    private void setUpGoogleMap() {
         mLocationManager = (LocationManager) requireActivity().getSystemService(Context.LOCATION_SERVICE);
         mLocationListener = location -> {
             LatLng currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
@@ -132,8 +81,54 @@ public class MapFragment extends Fragment implements Serializable {
 
         mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 5, mLocationListener);
         mapFragment.getMapAsync(googleMap -> {
-            googleMap.setMyLocationEnabled(true);
             mGoogleMap = googleMap;
+            googleMap.setMyLocationEnabled(true);
+            setUpMarkersOnMap();
+        });
+    }
+
+    private void setUpMarkersOnMap() {
+        FirebaseFirestore firebaseFirestore = FirebaseFirestore.getInstance();
+        CollectionReference restaurantsRef = firebaseFirestore.collection("workmates");
+
+        RestaurantRepository.getInstance().getAllRestaurant().observe(requireActivity(), restaurants -> {
+            for (Restaurant restaurant : restaurants) {
+                mRestaurantList.addAll(restaurants);
+
+                restaurantsRef.whereEqualTo("idSelectedRestaurant", restaurant.getIdR())
+                        .get()
+                        .addOnSuccessListener(queryDocumentSnapshots -> {
+                            boolean isWorkmateRestaurant = !queryDocumentSnapshots.isEmpty();
+                            int markerColor = (int) (isWorkmateRestaurant ? BitmapDescriptorFactory.HUE_GREEN : BitmapDescriptorFactory.HUE_RED);
+
+                            MarkerOptions markerOptions = new MarkerOptions()
+                                    .position(restaurant.getLatLng())
+                                    .icon(BitmapDescriptorFactory.defaultMarker(markerColor))
+                                    .title(restaurant.getName())
+                                    .snippet(restaurant.getAddress())
+                                    .anchor(0.5f, 0.5f)
+                                    .flat(true);
+
+                            mGoogleMap.addMarker(markerOptions);
+                        }).addOnFailureListener(e -> Log.e("MapFragment", "Error getting selected restaurants", e));
+            }
+        });
+
+        mGoogleMap.setOnMarkerClickListener(marker -> {
+            Restaurant selectedRestaurant = getRestaurantByMarker(marker);
+            assert selectedRestaurant != null;
+            marker.setTitle(selectedRestaurant.getName());
+            marker.setSnippet(selectedRestaurant.getAddress());
+            marker.showInfoWindow();
+            return true;
+        });
+
+        mGoogleMap.setOnInfoWindowClickListener(marker -> {
+            Restaurant selectedRestaurant = getRestaurantByMarker(marker);
+
+            Intent intent = new Intent(requireContext(), DetailedRestaurantActivity.class);
+            intent.putExtra(RestaurantAdapter.RESTAURANT_INFO, selectedRestaurant);
+            startActivity(intent);
         });
     }
 
