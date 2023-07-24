@@ -21,6 +21,7 @@ import android.widget.AutoCompleteTextView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -211,19 +212,31 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.left_nav_your_lunch) {
-            RestaurantRepository.getInstance().getAllRestaurant().observe(this,
-                    restaurants -> {
-                        FirebaseFirestore db = FirebaseFirestore.getInstance();
-                        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                        assert user != null;
-                        String currentId = user.getUid();
+            goToYourLunchPage();
+        } else if (item.getItemId() == R.id.left_nav_settings) {
+            startActivity(new Intent(HomeActivity.this, SettingsActivity.class));
+        } else if (item.getItemId() == R.id.left_nav_logout) {
+            showDialogForLogout();
+        }
+        mDrawerLayout.closeDrawer(GravityCompat.START);
+        return true;
+    }
 
-                        DocumentReference docRef = db.collection("workmates").document(currentId);
-                        docRef.get().addOnCompleteListener(task -> {
-                            if (task.isSuccessful()) {
-                                DocumentSnapshot document = task.getResult();
-                                if (document.exists()) {
-                                    Log.d("homeActivity", "goToSelectedRestaurantPage: " + restaurants);
+    private void goToYourLunchPage() {
+        RestaurantRepository.getInstance().getAllRestaurant().observe(this,
+                restaurants -> {
+                    FirebaseFirestore db = FirebaseFirestore.getInstance();
+                    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                    assert user != null;
+                    String currentId = user.getUid();
+
+                    DocumentReference docRef = db.collection("workmates").document(currentId);
+                    docRef.get().addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            DocumentSnapshot document = task.getResult();
+                            if (document.exists()) {
+                                Log.d("homeActivity", "goToSelectedRestaurantPage: " + restaurants);
+                                if (!Objects.equals(document.getString("idSelectedRestaurant"), "")) {
                                     for (Restaurant mRestaurant : restaurants) {
                                         if (Objects.equals(document.getString("idSelectedRestaurant"),
                                                 mRestaurant.getIdR())) {
@@ -234,20 +247,16 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                                         }
                                     }
                                 } else {
-                                    Log.d("homeActivity", "No such document");
+                                    Toast.makeText(this, R.string.restaurant_not_selected_alert, Toast.LENGTH_SHORT).show();
                                 }
                             } else {
-                                Log.d("homeActivity", "get failed with ", task.getException());
+                                Log.d("homeActivity", "No such document");
                             }
-                        });
+                        } else {
+                            Log.d("homeActivity", "get failed with ", task.getException());
+                        }
                     });
-        } else if (item.getItemId() == R.id.left_nav_settings) {
-            startActivity(new Intent(HomeActivity.this, SettingsActivity.class));
-        } else if (item.getItemId() == R.id.left_nav_logout) {
-            showDialogForLogout();
-        }
-        mDrawerLayout.closeDrawer(GravityCompat.START);
-        return true;
+                });
     }
 
     @Override
