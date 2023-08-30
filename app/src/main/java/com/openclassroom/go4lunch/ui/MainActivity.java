@@ -27,8 +27,6 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
-    // TODO Faire les test
-
     private static final int RC_SIGN_IN = 123;
     ActivityHomeBinding binding;
     FirebaseFirestore db = FirebaseFirestore.getInstance();

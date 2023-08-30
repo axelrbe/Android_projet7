@@ -75,5 +75,6 @@
     <string name="connexion">Connexion</string>
     <string name="workmates_search">recherchez un collègue</string>
     <string name="restaurant_not_selected_alert">Veuillez d\'abord séléctionner un restaurant pour aujourd\'hui !</string>
+    <string name="left_nav_logo">left nav logo</string>
 
 </resources>
