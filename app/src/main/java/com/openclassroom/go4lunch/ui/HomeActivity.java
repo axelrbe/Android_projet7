@@ -84,7 +84,12 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         headerLayout = binding.leftNavView.getHeaderView(0);
         setContentView(binding.getRoot());
 
-        RestaurantRepository.getInstance().updateRestaurant(this);
+        new Thread(() -> {
+            RestaurantRepository.getInstance().updateRestaurant(getApplicationContext());
+            runOnUiThread(() -> {
+                // Update UI elements here if needed
+            });
+        }).start();
 
         navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupWithNavController(binding.navView, navController);
@@ -104,15 +109,13 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
         // Get user data
         updateUIWithUserData();
-
         // Autocomplete implementation
         setUpAutocomplete();
     }
-
     private void setUpAutocomplete() {
-         searchViewBtn = findViewById(R.id.autocomplete_search_view);
+        searchViewBtn = findViewById(R.id.autocomplete_search_view);
         autocompleteContainer = findViewById(R.id.autocomplete_container);
-         searchView = findViewById(R.id.workmates_searchView);
+        searchView = findViewById(R.id.workmates_searchView);
 
         int currentDestinationId = Objects.requireNonNull(navController.getCurrentDestination()).getId();
         if (currentDestinationId == R.id.navigation_map || currentDestinationId == R.id.navigation_list) {
@@ -161,7 +164,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         } else {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, new LocationListener() {
                 @Override
-                public void onLocationChanged(Location location) {
+                public void onLocationChanged(@NonNull Location location) {
                     userLocation = new LatLng(location.getLatitude(), location.getLongitude());
                     locationManager.removeUpdates(this);
                 }

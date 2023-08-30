@@ -13,7 +13,7 @@ public class Restaurant implements Parcelable {
     private String name;
     @Nullable
     private final String phone;
-    private Float rating;
+    private final Float rating;
     @Nullable
     private final String type;
     @Nullable
@@ -64,15 +64,6 @@ public class Restaurant implements Parcelable {
 
     public Float getRating() {
         return rating;
-    }
-
-    public void setRating(Float rating) {
-        this.rating = rating;
-    }
-
-    @Nullable
-    public String getType() {
-        return type;
     }
 
     @Nullable
